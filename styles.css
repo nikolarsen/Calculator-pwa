@@ -1,11 +1,11 @@
 :root{
   --bg:#0f0f0f;
-  --panel:#222426;
-  --accent:#ff9a2a;
+  --panel:rgba(34,36,38,0.6);
+  --accent:rgba(255,154,42,0.8);
+  --red:rgba(220,60,60,0.8);
   --text:#e9e9e9;
   --muted:#8f8f8f;
-  --op-bg:#2b2b2b;
-  --red-btn:#c64c4c;
+  --op-bg:rgba(43,43,43,0.6);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing:antialiased;
 }
@@ -31,7 +31,6 @@ html,body{
   min-height:100vh;
   display:flex;
   flex-direction:column;
-  justify-content:flex-end;
 }
 
 .topbar{
@@ -39,67 +38,71 @@ html,body{
   justify-content:flex-end;
   align-items:flex-end;
   min-height:110px;
-  margin-bottom:8px;
+  margin-bottom:6px;
 }
 
 .history{
   color:var(--muted);
   font-size:18px;
-  line-height:1.2;
-  max-height:120px;
+  line-height:1.3;
+  max-height:110px;
   overflow:auto;
   width:100%;
   padding-right:10px;
   text-align:right;
-  margin-bottom:6px;
 }
 
 .screen{
-  font-size:42px;
-  padding:10px 14px;
-  min-height:80px;
+  font-size:40px;
+  padding:8px 12px;
+  min-height:72px;
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  margin-bottom:8px;
+  margin-bottom:6px;
   flex-shrink:0;
 }
 
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:6px;
+  gap:6px; /* чуть меньше отступ */
+  margin-top:auto;
 }
 
 .btn{
-  background: rgba(255,255,255,0.05);
+  background:rgba(255,255,255,0.05);
   backdrop-filter: blur(8px);
   border:1px solid rgba(255,255,255,0.1);
-  border-radius:12px;
   padding:20px 12px;
   font-size:24px;
   color:var(--text);
-  font-weight:600;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.5), inset 0 -2px rgba(0,0,0,0.25);
-  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+  border-radius:12px;
+  box-shadow:0 8px 12px rgba(0,0,0,0.6);
   touch-action: manipulation;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.2s ease;
 }
 
-/* Анимация нажатия */
-.btn:active, .btn.active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.6), inset 0 -1px rgba(0,0,0,0.3);
-  background: rgba(255,255,255,0.1);
+.btn:active{
+  transform:translateY(2px) scale(0.97);
+  box-shadow:0 4px 6px rgba(0,0,0,0.6);
+  background:rgba(255,255,255,0.1);
 }
 
-/* Верхний ряд красные кнопки */
-.keys > .left[data-action="all-clear"],
-.keys > .left[data-action="paren"],
-.keys > .left[data-action="delete"] {
-  background: var(--red-btn);
-  color:#fff;
-}
+.btn.op{background:var(--op-bg);}
+.btn.left{background:var(--red);}
+.btn.right{background:var(--accent);color:#111;font-weight:700;}
+.equals{background:var(--accent);color:#111;font-weight:700;border-radius:12px;}
+.num{font-weight:600;}
 
-/* Операторы */
-.btn.op, .keys > .right.op{background:var(--accent); color:#111; font-weight:700;}
-.equals{background:var(--accent); color:#111; font-weight:700; border-radius:12px;}
+/* Column with operator style */
+.keys > .right.op{background:var(--accent);color:#111;}
+.keys > .right{background:var(--accent);color:#111;}
+
+/* Responsive */
+@media (max-width:420px){
+  .calculator{padding:12px;}
+  .screen{font-size:36px;}
+  .history{font-size:16px;}
+  .btn{padding:18px;font-size:22px;}
+}
