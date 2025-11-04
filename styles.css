@@ -113,17 +113,17 @@ html, body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(255,255,255,0.08);
   touch-action: manipulation;
   transform: translateZ(0);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.1s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
 }
 
-/* Анимация при нажатии - УБРАТЬ :active и использовать класс */
-.btn.pressed {
-  transform: scale(0.94) translateZ(0);
+/* Анимация при нажатии - FIX для мобильных */
+.btn:active {
+  transform: scale(0.96) translateZ(0);
   box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
-  background: rgba(60, 60, 60, 0.9) !important;
+  background: rgba(60, 60, 60, 0.9);
 }
 
 /* Стеклянный эффект при наведении */
@@ -141,6 +141,10 @@ html, body {
   background: rgba(70, 70, 70, 0.85);
 }
 
+.btn.num:active {
+  background: rgba(60, 60, 60, 0.9);
+}
+
 /* КНОПКИ ОПЕРАТОРОВ И РАВНО */
 .btn.op,
 .btn.right,
@@ -150,11 +154,11 @@ html, body {
   font-weight: 700;
 }
 
-/* Стили при наведении для операторов и равно */
-.btn.op:hover,
-.btn.right:hover,
-.btn.equals:hover {
-  background: #ffab4d;
+.btn.op:active,
+.btn.right:active,
+.btn.equals:active {
+  background: #e6891a;
+  transform: scale(0.96) translateZ(0);
 }
 
 /* КРАСНЫЕ КНОПКИ УПРАВЛЕНИЯ */
@@ -168,29 +172,13 @@ html, body {
   font-weight: 600;
 }
 
-/* Стили при наведении для красных кнопок */
-.btn[data-action="all-clear"]:hover,
-.btn[data-action="paren"]:hover,
-.btn[data-action="delete"]:hover,
-.btn[data-action="percent"]:hover,
-.btn[data-value="."]:hover {
-  background: #ff6b6b;
-}
-
-/* Особые стили для нажатых операторов и равно */
-.btn.op.pressed,
-.btn.right.pressed,
-.btn.equals.pressed {
-  background: #e6891a !important;
-}
-
-/* Особые стили для нажатых красных кнопок */
-.btn[data-action="all-clear"].pressed,
-.btn[data-action="paren"].pressed,
-.btn[data-action="delete"].pressed,
-.btn[data-action="percent"].pressed,
-.btn[data-value="."].pressed {
-  background: #ff3b3b !important;
+.btn[data-action="all-clear"]:active,
+.btn[data-action="paren"]:active,
+.btn[data-action="delete"]:active,
+.btn[data-action="percent"]:active,
+.btn[data-value="."]:active {
+  background: #ff3b3b;
+  transform: scale(0.96) translateZ(0);
 }
 
 /* Состояние фокуса для доступности */
@@ -219,112 +207,10 @@ html, body {
   }
 }
 
-@media (max-height: 700px) {
-  .calculator {
-    padding: 8px 10px;
-  }
-  .screen {
-    font-size: 34px;
-    margin-bottom: 8px;
-  }
-  .btn {
-    padding: 16px 8px;
-    font-size: 20px;
-  }
-}
-
-/* Поддержка светлой темы */
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f5f5f5;
-    --panel: #ffffff;
-    --accent: #ff9a2a;
-    --text: #333333;
-    --muted: #666666;
-    --danger: #ff4e4e;
-  }
-  
-  .btn {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -2px rgba(0,0,0,0.05);
-    color: var(--text);
-  }
-  
-  .btn.pressed {
-    background: rgba(240, 240, 240, 0.9) !important;
-  }
-  
-  .btn:hover {
-    background: rgba(250, 250, 250, 0.85);
-  }
-  
-  .btn.num {
-    background: rgba(255, 255, 255, 0.85);
-  }
-  
-  .btn.num:hover {
-    background: rgba(250, 250, 250, 0.85);
-  }
-  
-  /* Операторы и равно в светлой теме */
-  .btn.op,
-  .btn.right,
-  .btn.equals {
-    background: var(--accent);
-    color: #111;
-  }
-  
-  .btn.op:hover,
-  .btn.right:hover,
-  .btn.equals:hover {
-    background: #ffab4d;
-  }
-  
-  .btn.op.pressed,
-  .btn.right.pressed,
-  .btn.equals.pressed {
-    background: #e6891a !important;
-  }
-  
-  /* Красные кнопки в светлой теме */
-  .btn[data-action="all-clear"],
-  .btn[data-action="paren"],
-  .btn[data-action="delete"],
-  .btn[data-action="percent"],
-  .btn[data-value="."] {
-    background: var(--danger);
-    color: #fff;
-  }
-  
-  .btn[data-action="all-clear"]:hover,
-  .btn[data-action="paren"]:hover,
-  .btn[data-action="delete"]:hover,
-  .btn[data-action="percent"]:hover,
-  .btn[data-value="."]:hover {
-    background: #ff6b6b;
-  }
-  
-  .btn[data-action="all-clear"].pressed,
-  .btn[data-action="paren"].pressed,
-  .btn[data-action="delete"].pressed,
-  .btn[data-action="percent"].pressed,
-  .btn[data-value="."].pressed {
-    background: #ff3b3b !important;
-  }
-  
-  .history {
-    color: var(--muted);
-  }
-}
-
-/* Отключение анимаций для пользователей, которые их предпочитают избегать */
-@media (prefers-reduced-motion: reduce) {
-  .btn {
-    transition: none;
-  }
-  
-  .btn.pressed {
-    transform: none;
+/* FIX для проблемы с :active на мобильных */
+@media (hover: none) and (pointer: coarse) {
+  .btn:active {
+    transform: scale(0.96) translateZ(0);
+    transition-duration: 0s; /* Мгновенный возврат на мобильных */
   }
 }
