@@ -7,6 +7,21 @@ let readyForNewInput = false;
 let replaceLastNumber = false;
 let calculationInProgress = false;
 
+// Функции для управления состоянием кнопок
+function setButtonPressed(btn) {
+  btn.classList.add('pressed');
+}
+
+function setButtonReleased(btn) {
+  btn.classList.remove('pressed');
+}
+
+function releaseAllButtons() {
+  document.querySelectorAll('.btn.pressed').forEach(btn => {
+    btn.classList.remove('pressed');
+  });
+}
+
 /* Отображение с доступностью */
 function renderScreen() {
   const displayValue = expr || '0';
@@ -360,15 +375,55 @@ acBtn.addEventListener('mousedown', handleACLongPress);
 acBtn.addEventListener('mouseup', cancelACLongPress);
 acBtn.addEventListener('mouseleave', cancelACLongPress);
 
-/* УПРОЩЕННАЯ АНИМАЦИЯ КНОПОК - только вибрация, CSS handles the rest */
+/* НАДЕЖНАЯ АНИМАЦИЯ КНОПОК */
 document.querySelectorAll('.btn').forEach(btn => {
+  // Touch события
+  btn.addEventListener('touchstart', (e) => {
+    releaseAllButtons(); // Сначала сбрасываем все кнопки
+    setButtonPressed(btn);
+    if (navigator.vibrate) navigator.vibrate(10);
+    e.preventDefault();
+  }, { passive: false });
+  
+  btn.addEventListener('touchend', () => {
+    setTimeout(() => setButtonReleased(btn), 150);
+  });
+  
+  btn.addEventListener('touchcancel', () => {
+    setButtonReleased(btn);
+  });
+  
+  // Mouse события
   btn.addEventListener('mousedown', () => {
+    releaseAllButtons(); // Сначала сбрасываем все кнопки
+    setButtonPressed(btn);
     if (navigator.vibrate) navigator.vibrate(10);
   });
   
-  btn.addEventListener('touchstart', () => {
-    if (navigator.vibrate) navigator.vibrate(10);
-  }, { passive: true });
+  btn.addEventListener('mouseup', () => {
+    setTimeout(() => setButtonReleased(btn), 150);
+  });
+  
+  btn.addEventListener('mouseleave', () => {
+    setButtonReleased(btn);
+  });
+  
+  // Отмена контекстного меню
+  btn.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+  });
+});
+
+// Гарантированное освобождение всех кнопок при любом клике вне кнопок
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.btn')) {
+    releaseAllButtons();
+  }
+});
+
+// Освобождение кнопок при потере фокуса окном
+window.addEventListener('blur', () => {
+  releaseAllButtons();
 });
 
 /* Обработка клавиатуры */
@@ -396,8 +451,9 @@ document.addEventListener('keydown', (e) => {
   }
   
   if (btn) {
+    setButtonPressed(btn);
     btn.click();
-    // Анимация нажатия обрабатывается CSS :active
+    setTimeout(() => setButtonReleased(btn), 150);
     e.preventDefault();
   }
 });
