@@ -207,6 +207,26 @@ window.addEventListener('keydown', (e) => {
   if (e.key === '+' || e.key === '-') { insertChar(e.key === '-' ? '−' : '+'); return; }
   if (e.key === '*' || e.key === 'x') { insertChar('×'); return; }
   if (e.key === '/') { insertChar('÷'); return; }
+
+  // --- Анимация кнопок (все кнопки реагируют одинаково) ---
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('touchstart', () => {
+    btn.classList.add('pressed');
+    // Виброотклик (работает на iPhone)
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(10);
+    }
+  });
+  btn.addEventListener('touchend', () => {
+    setTimeout(() => btn.classList.remove('pressed'), 150);
+  });
+  btn.addEventListener('mousedown', () => {
+    btn.classList.add('pressed');
+  });
+  btn.addEventListener('mouseup', () => {
+    setTimeout(() => btn.classList.remove('pressed'), 150);
+  });
+});
 });
 
 // --- Инициализация ---
