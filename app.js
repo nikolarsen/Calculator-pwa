@@ -109,12 +109,18 @@ function vibrate() {
   if (navigator.vibrate) navigator.vibrate(10);
 }
 
-// Клик по кнопкам
-keys.addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-value], button[data-action]');
+// --- Анимация кнопок на сенсорных устройствах ---
+keys.addEventListener('touchstart', e => {
+  const btn = e.target.closest('button');
   if (!btn) return;
-  vibrate();
+  btn.classList.add('active');
+});
 
+keys.addEventListener('touchend', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  btn.classList.remove('active');
+});
   const val = btn.dataset.value;
   const action = btn.dataset.action;
 
