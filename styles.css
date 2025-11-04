@@ -36,15 +36,14 @@ html, body{
   display:flex;
   justify-content:flex-end;
   align-items:flex-end;
-  margin-bottom:6px;
+  flex:1; /* занимает всё пространство сверху */
+  overflow-y:auto; /* если история длинная, прокрутка */
 }
 
 .history{
   color:var(--muted);
-  font-size:28px; /* чуть меньше ЭВ */
+  font-size:24px; /* чуть меньше ЭВ */
   line-height:1.2;
-  max-height:120px; /* оставляем прокрутку при длинной истории */
-  overflow-y:auto;
   width:100%;
   padding-right:10px;
   text-align:right;
@@ -66,8 +65,8 @@ html, body{
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  margin-bottom:6px;
-  flex-shrink:0;
+  margin-bottom:6px; /* отступ перед клавишами */
+  flex-shrink:0; /* не сжимается */
 }
 
 .keys{
@@ -109,6 +108,6 @@ html, body{
 @media (max-width:420px){
   .calculator{padding:12px;}
   .screen{font-size:36px; min-height:72px;}
-  .history{font-size:24px; max-height:110px;}
+  .history{font-size:22px; max-height:130px;}
   .btn{padding:18px;font-size:22px;}
 }
