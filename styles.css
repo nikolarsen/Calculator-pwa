@@ -44,20 +44,20 @@ html,body{
 
 .history{
   color:var(--muted);
-  font-size:15px;
+  font-size:18px;
   line-height:1.2;
-  max-height:110px;
+  max-height:120px;
   overflow:auto;
   width:100%;
   padding-right:10px;
   text-align:right;
-  margin-bottom:4px;
+  margin-bottom:6px;
 }
 
 .screen{
-  font-size:36px;
-  padding:8px 12px;
-  min-height:72px;
+  font-size:42px;
+  padding:10px 14px;
+  min-height:80px;
   display:flex;
   align-items:center;
   justify-content:flex-end;
@@ -111,6 +111,6 @@ html,body{
 
 @media (max-width:420px){
   .calculator{padding:12px;}
-  .screen{font-size:32px;}
+  .screen{font-size:36px;}
   .btn{padding:18px; font-size:22px;}
 }
