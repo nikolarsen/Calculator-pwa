@@ -26,7 +26,7 @@ html,body{
 .calculator{
   max-width:420px;
   margin:0 auto;
-  padding:18px 14px 28px;
+  padding:18px 14px 18px; /* меньше нижнего отступа */
   min-height:100vh;
   display:flex;
   flex-direction:column;
@@ -37,7 +37,7 @@ html,body{
   justify-content:flex-end;
   align-items:flex-end;
   min-height:110px;
-  margin-bottom:6px; /* Отступ между историей и экраном */
+  margin-bottom:6px; /* отступ между историей и экраном */
 }
 
 .history{
@@ -58,13 +58,14 @@ html,body{
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  margin-bottom:10px; /* Отступ между экраном и клавишами */
+  margin-bottom:8px; /* красивый небольшой отступ перед клавишами */
 }
 
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:10px;
+  margin-top:auto; /* прижимает клавиши к низу */
 }
 
 .btn{
