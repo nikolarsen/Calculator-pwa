@@ -7,21 +7,6 @@ let readyForNewInput = false;
 let replaceLastNumber = false;
 let calculationInProgress = false;
 
-// Функции для управления состоянием кнопок
-function setButtonPressed(btn) {
-  btn.classList.add('pressed');
-}
-
-function setButtonReleased(btn) {
-  btn.classList.remove('pressed');
-}
-
-function releaseAllButtons() {
-  document.querySelectorAll('.btn.pressed').forEach(btn => {
-    btn.classList.remove('pressed');
-  });
-}
-
 /* Отображение с доступностью */
 function renderScreen() {
   const displayValue = expr || '0';
@@ -29,7 +14,7 @@ function renderScreen() {
   screen.setAttribute('aria-label', `Экран: ${displayValue}`);
 }
 
-/* Добавление в историю с анимацией */
+/* Добавление в историю */
 function addHistoryItem(input, result) {
   const el = document.createElement('div');
   el.className = 'line';
@@ -38,18 +23,7 @@ function addHistoryItem(input, result) {
   el.setAttribute('tabindex', '0');
   el.setAttribute('aria-label', `Вычисление: ${input} равно ${result}. Нажмите чтобы использовать результат`);
   
-  // Анимация появления
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(-10px)';
-  
   historyEl.prepend(el);
-  
-  // Запуск анимации
-  requestAnimationFrame(() => {
-    el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    el.style.opacity = '1';
-    el.style.transform = 'translateY(0)';
-  });
 
   // Ограничение истории
   while (historyEl.children.length > 30) {
@@ -67,42 +41,34 @@ function sanitizeForCalc(displayExpr) {
     .replace(/−/g, '-')
     .replace(/\s/g, '');
 
-  // Обработка процентов: 50 + 10% -> 50 + (50 * 10 / 100)
+  // Обработка процентов
   s = s.replace(/(\d+(?:\.\d+)?)([\+\-\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
-  
-  // Обработка одиночных процентов: 50% -> 0.5
   s = s.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
-  
-  // Удаление небезопасных символов
   s = s.replace(/[^0-9+\-*/().]/g, '');
   
   return s;
 }
 
-/* Безопасное вычисление с улучшенной обработкой ошибок */
+/* Безопасное вычисление */
 function safeEval(displayExpr) {
   const jsExpr = sanitizeForCalc(displayExpr);
   
   if (!jsExpr) return '0';
   
-  // Защита от пустых выражений и скобок
   if (jsExpr.includes('()') || /[+\-*\/]$/.test(jsExpr)) {
     return 'Ошибка';
   }
 
   try {
-    // Используем Function для безопасного вычисления
     const result = Function('"use strict";return(' + jsExpr + ')')();
     
     if (typeof result !== 'number' || !isFinite(result)) {
       return result === Infinity ? 'Бесконечность' : 'Ошибка';
     }
     
-    // Умное округление для избежания floating point ошибок
     if (Number.isInteger(result)) {
       return result.toString();
     } else {
-      // Округляем до 10 знаков, но убираем лишние нули
       return parseFloat(result.toFixed(10)).toString();
     }
   } catch (error) {
@@ -111,7 +77,7 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа с улучшенной логикой */
+/* Вставка символа */
 function insertChar(ch) {
   const lastChar = expr.slice(-1);
   const ops = ['+', '−', '×', '÷'];
@@ -121,16 +87,9 @@ function insertChar(ch) {
     readyForNewInput = false;
   }
   
-  // Замена оператора, если последний символ - оператор
   if (ops.includes(lastChar) && ops.includes(ch)) {
     expr = expr.slice(0, -1) + ch;
-  } 
-  // Добавление оператора после результата
-  else if (readyForNewInput && ops.includes(ch)) {
-    expr += ch;
-    readyForNewInput = false;
-  }
-  else {
+  } else {
     expr += ch;
   }
   
@@ -138,14 +97,13 @@ function insertChar(ch) {
   renderScreen();
 }
 
-/* Обработка равно с защитой от множественных вычислений */
+/* Обработка равно */
 function handleEquals() {
   if (calculationInProgress || !expr) return;
   
   calculationInProgress = true;
   
   try {
-    screen.setAttribute('aria-live', 'polite');
     const res = safeEval(expr);
     
     if (res !== 'Ошибка' && res !== 'Бесконечность') {
@@ -160,14 +118,6 @@ function handleEquals() {
     renderScreen();
     readyForNewInput = true;
     
-    // Визуальный feedback при ошибке
-    if (res === 'Ошибка' || res === 'Бесконечность') {
-      screen.style.color = 'var(--danger)';
-      setTimeout(() => {
-        screen.style.color = '';
-      }, 1000);
-    }
-    
   } catch (error) {
     console.error('Ошибка в handleEquals:', error);
     expr = 'Ошибка';
@@ -175,12 +125,11 @@ function handleEquals() {
   } finally {
     setTimeout(() => {
       calculationInProgress = false;
-      screen.setAttribute('aria-live', 'off');
     }, 100);
   }
 }
 
-/* Проценты с улучшенной логикой */
+/* Проценты */
 function handlePercent() {
   const lastChar = expr.slice(-1);
   if (!expr || ['+', '−', '×', '÷', '('].includes(lastChar)) return;
@@ -189,7 +138,7 @@ function handlePercent() {
   renderScreen();
 }
 
-/* Умные скобки */
+/* Скобки */
 function handleParen() {
   const open = (expr.match(/\(/g) || []).length;
   const close = (expr.match(/\)/g) || []).length;
@@ -210,7 +159,7 @@ function handleParen() {
   renderScreen();
 }
 
-/* Удаление с проверкой */
+/* Удаление */
 function handleDelete() {
   if (expr.length > 0) {
     expr = expr.slice(0, -1);
@@ -222,36 +171,11 @@ function handleDelete() {
 function handleAllClear(longPress = false) {
   if (longPress) {
     historyEl.innerHTML = '';
-    // Анимация очистки истории
-    historyEl.style.opacity = '0.5';
-    setTimeout(() => {
-      historyEl.style.opacity = '1';
-      historyEl.style.transition = 'opacity 0.3s ease';
-    }, 300);
   }
   expr = '';
   readyForNewInput = false;
   replaceLastNumber = false;
   renderScreen();
-}
-
-/* Копирование результата */
-function copyResult() {
-  const result = screen.textContent;
-  if (navigator.clipboard && result !== '0') {
-    navigator.clipboard.writeText(result.replace(/[×÷−]/g, ch => {
-      return { '×': '*', '÷': '/', '−': '-' }[ch] || ch;
-    })).then(() => {
-      // Визуальная обратная связь
-      const originalColor = screen.style.color;
-      screen.style.color = 'var(--accent)';
-      setTimeout(() => {
-        screen.style.color = originalColor;
-      }, 500);
-    }).catch(err => {
-      console.error('Ошибка копирования:', err);
-    });
-  }
 }
 
 /* Обработка кликов по кнопкам */
@@ -299,10 +223,8 @@ keys.addEventListener('click', (e) => {
       const parts = expr.split(/[^0-9.]/);
       const lastNum = parts[parts.length - 1] || '';
       
-      // Запрет множественных точек
       if (val === '.' && lastNum.includes('.')) return;
       
-      // Добавление нуля перед точкой если нужно
       if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
         expr += '0.';
       } else {
@@ -342,136 +264,34 @@ historyEl.addEventListener('click', (e) => {
   }
 });
 
-// Поддержка клавиатуры для истории
-historyEl.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    e.target.click();
-  }
-});
-
-/* Долгое нажатие AC — очистить всё */
+/* Долгое нажатие AC */
 let acTimer = null;
 const acBtn = document.querySelector('[data-action="all-clear"]');
 
-function handleACLongPress() {
+acBtn.addEventListener('touchstart', () => {
   acTimer = setTimeout(() => {
     handleAllClear(true);
     if (navigator.vibrate) navigator.vibrate(50);
   }, 700);
-}
+});
 
-function cancelACLongPress() {
+acBtn.addEventListener('touchend', () => {
   if (acTimer) {
     clearTimeout(acTimer);
     acTimer = null;
   }
-}
+});
 
-acBtn.addEventListener('touchstart', handleACLongPress);
-acBtn.addEventListener('touchend', cancelACLongPress);
-acBtn.addEventListener('touchcancel', cancelACLongPress);
-acBtn.addEventListener('mousedown', handleACLongPress);
-acBtn.addEventListener('mouseup', cancelACLongPress);
-acBtn.addEventListener('mouseleave', cancelACLongPress);
-
-/* НАДЕЖНАЯ АНИМАЦИЯ КНОПОК */
+/* Простая вибрация для кнопок */
 document.querySelectorAll('.btn').forEach(btn => {
-  // Touch события
-  btn.addEventListener('touchstart', (e) => {
-    releaseAllButtons(); // Сначала сбрасываем все кнопки
-    setButtonPressed(btn);
-    if (navigator.vibrate) navigator.vibrate(10);
-    e.preventDefault();
-  }, { passive: false });
-  
-  btn.addEventListener('touchend', () => {
-    setTimeout(() => setButtonReleased(btn), 150);
-  });
-  
-  btn.addEventListener('touchcancel', () => {
-    setButtonReleased(btn);
-  });
-  
-  // Mouse события
   btn.addEventListener('mousedown', () => {
-    releaseAllButtons(); // Сначала сбрасываем все кнопки
-    setButtonPressed(btn);
     if (navigator.vibrate) navigator.vibrate(10);
   });
   
-  btn.addEventListener('mouseup', () => {
-    setTimeout(() => setButtonReleased(btn), 150);
-  });
-  
-  btn.addEventListener('mouseleave', () => {
-    setButtonReleased(btn);
-  });
-  
-  // Отмена контекстного меню
-  btn.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-  });
-});
-
-// Гарантированное освобождение всех кнопок при любом клике вне кнопок
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.btn')) {
-    releaseAllButtons();
-  }
-});
-
-// Освобождение кнопок при потере фокуса окном
-window.addEventListener('blur', () => {
-  releaseAllButtons();
-});
-
-/* Обработка клавиатуры */
-document.addEventListener('keydown', (e) => {
-  const key = e.key;
-  const keyActions = {
-    'Enter': 'equals',
-    '=': 'equals',
-    'Escape': 'all-clear',
-    'Delete': 'all-clear',
-    'Backspace': 'delete',
-    '%': 'percent',
-    '(': 'paren',
-    ')': 'paren'
-  };
-  
-  const action = keyActions[key];
-  let btn = null;
-  
-  if (action) {
-    btn = document.querySelector(`[data-action="${action}"]`);
-  } else if (/[0-9\.+\-*/]/.test(key)) {
-    const displayKey = key.replace('*', '×').replace('/', '÷').replace('-', '−');
-    btn = document.querySelector(`[data-value="${displayKey}"]`);
-  }
-  
-  if (btn) {
-    setButtonPressed(btn);
-    btn.click();
-    setTimeout(() => setButtonReleased(btn), 150);
-    e.preventDefault();
-  }
-});
-
-/* Двойной тап по экрану для копирования */
-screen.addEventListener('dblclick', copyResult);
-
-// Обработчик для доступности
-screen.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    copyResult();
-  }
+  btn.addEventListener('touchstart', () => {
+    if (navigator.vibrate) navigator.vibrate(10);
+  }, { passive: true });
 });
 
 /* Инициализация */
 renderScreen();
-
-// Установка заголовка для доступности
-screen.setAttribute('role', 'status');
-screen.setAttribute('aria-live', 'off');
