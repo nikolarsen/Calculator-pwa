@@ -36,15 +36,14 @@ html, body{
   display:flex;
   justify-content:flex-end;
   align-items:flex-end;
-  min-height:150px; /* увеличено для истории */
   margin-bottom:6px;
 }
 
 .history{
   color:var(--muted);
-  font-size:24px; /* увеличено почти до ЭВ */
+  font-size:28px; /* чуть меньше ЭВ */
   line-height:1.2;
-  max-height:150px; /* увеличена высота */
+  max-height:120px; /* оставляем прокрутку при длинной истории */
   overflow-y:auto;
   width:100%;
   padding-right:10px;
@@ -61,9 +60,9 @@ html, body{
 }
 
 .screen{
-  font-size:38px; /* увеличен шрифт */
+  font-size:38px; /* увеличен шрифт ЭВ */
   padding:8px 12px;
-  min-height:80px;
+  min-height:72px;
   display:flex;
   align-items:center;
   justify-content:flex-end;
@@ -74,30 +73,30 @@ html, body{
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:8px; /* уменьшено расстояние между кнопками */
+  gap:8px;
   margin-top:auto; /* прижимает клавиши к низу */
 }
 
 .btn{
-  background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3));
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3));
   border:0;
   padding:20px 12px;
   font-size:24px;
   color:var(--text);
   border-radius:10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 -2px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(0,0,0,0.25);
   touch-action: manipulation;
   transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.2s ease;
 }
 
 .btn:active{
-  transform:translateY(2px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 -1px rgba(0,0,0,0.25);
-  background:linear-gradient(145deg, rgba(0,0,0,0.3), rgba(255,255,255,0.05));
+  transform: translateY(2px);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(0,0,0,0.25);
+  background: linear-gradient(145deg, rgba(0,0,0,0.3), rgba(255,255,255,0.05));
 }
 
 .btn.op{background:var(--op-bg);}
-.btn.left{background:#b23b3b; color:#fff;} /* красные AC, (), DEL */
+.btn.left{background:#b23b3b;color:#fff;} /* красные AC, (), DEL */
 .btn.right{background:var(--accent);color:#111;font-weight:700;}
 .equals{background:var(--accent);color:#111;font-weight:700;border-radius:10px;}
 .num{font-weight:600;}
@@ -110,6 +109,6 @@ html, body{
 @media (max-width:420px){
   .calculator{padding:12px;}
   .screen{font-size:36px; min-height:72px;}
-  .history{font-size:22px; max-height:130px;}
+  .history{font-size:24px; max-height:110px;}
   .btn{padding:18px;font-size:22px;}
 }
