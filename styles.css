@@ -26,30 +26,29 @@ html, body{
 .calculator{
   max-width:420px;
   margin:0 auto;
-  padding:18px 14px 18px;
+  padding:12px;
   min-height:100vh;
   display:flex;
   flex-direction:column;
 }
 
 .topbar{
+  flex:1; /* растягивается до ЭВ */
   display:flex;
-  justify-content:flex-end;
-  align-items:flex-end;
-  flex:1; /* занимает всё пространство сверху */
-  overflow-y:auto; /* если история длинная, прокрутка */
+  flex-direction:column;
+  justify-content:flex-end; /* прижимает историю к ЭВ */
+  overflow-y:auto;
 }
 
 .history{
   color:var(--muted);
-  font-size:24px; /* чуть меньше ЭВ */
+  font-size:24px;
   line-height:1.2;
   width:100%;
   padding-right:10px;
   text-align:right;
 }
 
-/* scrollbar для истории */
 .history::-webkit-scrollbar {
   width:6px;
 }
@@ -59,21 +58,21 @@ html, body{
 }
 
 .screen{
-  font-size:38px; /* увеличен шрифт ЭВ */
+  font-size:38px;
   padding:8px 12px;
   min-height:72px;
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  margin-bottom:6px; /* отступ перед клавишами */
-  flex-shrink:0; /* не сжимается */
+  margin-bottom:6px;
+  flex-shrink:0;
 }
 
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:8px;
-  margin-top:auto; /* прижимает клавиши к низу */
+  margin-top:auto; /* прижимает кнопки к низу */
 }
 
 .btn{
@@ -95,7 +94,7 @@ html, body{
 }
 
 .btn.op{background:var(--op-bg);}
-.btn.left{background:#b23b3b;color:#fff;} /* красные AC, (), DEL */
+.btn.left{background:#b23b3b;color:#fff;} /* красные AC, (), DEL, % */
 .btn.right{background:var(--accent);color:#111;font-weight:700;}
 .equals{background:var(--accent);color:#111;font-weight:700;border-radius:10px;}
 .num{font-weight:600;}
@@ -106,8 +105,8 @@ html, body{
 
 /* Responsive */
 @media (max-width:420px){
-  .calculator{padding:12px;}
+  .calculator{padding:8px;}
   .screen{font-size:36px; min-height:72px;}
-  .history{font-size:22px; max-height:130px;}
+  .history{font-size:22px;}
   .btn{padding:18px;font-size:22px;}
 }
