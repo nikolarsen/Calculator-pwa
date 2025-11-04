@@ -4,7 +4,7 @@
   --accent: #ff9a2a;
   --text: #e9e9e9;
   --muted: #9b9b9b;
-  --danger: #ff4e4e;
+  --danger: #ff4e4e; /* мягкий красный */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing: antialiased;
 }
@@ -24,80 +24,92 @@ html, body {
   overflow: hidden;
 }
 
-/* Контейнер приложения */
+/* Контейнер всего приложения */
 .calculator {
   max-width: 420px;
   margin: 0 auto;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden; /* предотвращаем прокрутку всего экрана */
   padding: 16px 14px;
+}
+
+/* Верхняя часть с историей */
+.topbar {
+  flex: 1; /* занимает всё верхнее пространство */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow-y: auto; /* скролл только внутри истории */
+  scrollbar-width: thin;
+  margin-bottom: 6px;
 }
 
 /* История */
 .history {
-  flex: 1;
-  overflow-y: auto;
   color: var(--muted);
-  font-size: 20px;
-  line-height: 1.4;
+  font-size: 18px;
+  line-height: 1.3;
+  overflow-y: auto;
   width: 100%;
   text-align: right;
   padding-right: 10px;
-  scrollbar-width: thin;
 }
 
 /* Экран */
 .screen {
-  font-size: 48px;
-  padding: 12px 10px;
+  font-size: 42px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-shrink: 0;
-  margin: 8px 0 14px;
-  text-align: right;
+  margin-bottom: 10px;
 }
 
-/* Кнопки */
+/* Клавиши */
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  flex-shrink: 0;
   margin-top: auto;
+  flex-shrink: 0;
 }
 
-/* --- Общий стиль кнопок --- */
+/* Кнопки */
 .btn {
   background: rgba(45, 45, 45, 0.85);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 20px 12px;
   font-size: 24px;
   color: var(--text);
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5), inset 0 -2px rgba(255, 255, 255, 0.08);
-  transition: all 0.12s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(255,255,255,0.08);
   touch-action: manipulation;
-  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.3s ease;
 }
 
-/* Наведение */
-.btn:hover {
-  background: rgba(70, 70, 70, 0.9);
-}
-
-/* Нажатие — общее состояние */
-.btn:active,
-.btn.pressed {
+/* Анимация при нажатии */
+.btn:active {
   transform: scale(0.96);
-  background: rgba(100, 100, 100, 0.9);
   box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
+  background: rgba(60, 60, 60, 0.9);
 }
 
-/* Красные кнопки */
+/* Стеклянный эффект */
+.btn:hover {
+  background: rgba(70, 70, 70, 0.85);
+}
+
+/* Цветовые акценты */
+.btn.op { background: rgba(50,50,50,0.85); }
+.btn.right { background: var(--accent); color: #111; font-weight: 700; }
+.equals { background: var(--accent); color: #111; font-weight: 700; }
+.num { font-weight: 600; }
+
+/* Красные кнопки управления */
 .btn[data-action="all-clear"],
 .btn[data-action="paren"],
 .btn[data-action="delete"],
@@ -108,16 +120,9 @@ html, body {
   font-weight: 600;
 }
 
-/* Акцент */
-.btn.right, .equals {
-  background: var(--accent);
-  color: #111;
-  font-weight: 700;
-}
-
-/* Адаптив */
+/* Увеличенный экран при маленьких устройствах */
 @media (max-width: 420px) {
-  .screen { font-size: 40px; }
-  .history { font-size: 18px; }
+  .calculator { padding: 12px; }
+  .screen { font-size: 36px; }
   .btn { padding: 18px; font-size: 22px; }
 }
