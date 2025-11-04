@@ -208,7 +208,11 @@ window.addEventListener('keydown', (e) => {
   if (e.key === '*' || e.key === 'x') { insertChar('×'); return; }
   if (e.key === '/') { insertChar('÷'); return; }
 
-  // --- Анимация кнопок (все кнопки реагируют одинаково) ---
+
+
+// --- Инициализация ---
+renderScreen();
+// --- Анимация кнопок (все кнопки реагируют одинаково) ---
 document.querySelectorAll('.btn').forEach(btn => {
   btn.addEventListener('touchstart', () => {
     btn.classList.add('pressed');
@@ -227,7 +231,3 @@ document.querySelectorAll('.btn').forEach(btn => {
     setTimeout(() => btn.classList.remove('pressed'), 150);
   });
 });
-});
-
-// --- Инициализация ---
-renderScreen();
