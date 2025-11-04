@@ -48,16 +48,16 @@ html, body {
   margin-bottom: 6px;
 }
 
-/* История */
+/* История - УВЕЛИЧЕННЫЙ шрифт */
 .history {
   color: var(--muted);
-  font-size: 18px;
+  font-size: 22px; /* Было 18px */
   line-height: 1.3;
   overflow-y: auto;
   width: 100%;
   text-align: right;
   padding-right: 10px;
-  min-height: 24px;
+  min-height: 28px;
 }
 
 /* Кастомный скроллбар для истории */
@@ -78,17 +78,17 @@ html, body {
   background: var(--accent);
 }
 
-/* Экран */
+/* Экран - УВЕЛИЧЕННЫЙ шрифт */
 .screen {
-  font-size: 42px;
-  padding: 10px 12px;
+  font-size: 52px; /* Было 42px */
+  padding: 12px 14px; /* Немного увеличил отступы */
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-shrink: 0;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-weight: 500;
-  min-height: 60px;
+  min-height: 70px; /* Увеличил минимальную высоту */
   transition: color 0.3s ease;
 }
 
@@ -183,16 +183,16 @@ html, body {
     max-width: 100%;
   }
   .screen { 
-    font-size: 36px; 
-    min-height: 50px;
+    font-size: 44px; /* Было 36px */
+    min-height: 60px;
+  }
+  .history {
+    font-size: 20px; /* Было 16px */
   }
   .btn { 
     padding: 18px 10px; 
     font-size: 22px; 
     border-radius: 10px;
-  }
-  .history {
-    font-size: 16px;
   }
 }
 
