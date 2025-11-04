@@ -4,7 +4,7 @@
   --accent: #ff9a2a;
   --text: #e9e9e9;
   --muted: #9b9b9b;
-  --danger: #ff4e4e; /* мягкий красный */
+  --danger: #ff4e4e;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing: antialiased;
 }
@@ -24,40 +24,31 @@ html, body {
   overflow: hidden;
 }
 
-/* Контейнер всего приложения */
+/* Контейнер приложения */
 .calculator {
   max-width: 420px;
   margin: 0 auto;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* предотвращаем прокрутку всего экрана */
+  overflow: hidden;
   padding: 16px 14px;
 }
 
-/* Верхняя часть с историей */
-.topbar {
-  flex: 1; /* занимает всё верхнее пространство */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  overflow-y: auto; /* скролл только внутри истории */
-  scrollbar-width: thin;
-  margin-bottom: 6px;
-}
-
-/* История */
+/* История (прокручивается отдельно) */
 .history {
+  flex: 1;
+  overflow-y: auto;
   color: var(--muted);
   font-size: 18px;
   line-height: 1.3;
-  overflow-y: auto;
   width: 100%;
   text-align: right;
   padding-right: 10px;
+  scrollbar-width: thin;
 }
 
-/* Экран */
+/* Экран калькулятора */
 .screen {
   font-size: 42px;
   padding: 10px 12px;
@@ -68,7 +59,15 @@ html, body {
   margin-bottom: 10px;
 }
 
-/* Клавиши */
+/* Кнопочная панель */
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
 /* --- Кнопки со стеклянным эффектом и плавной анимацией --- */
 .btn {
   background: rgba(45, 45, 45, 0.85);
@@ -84,12 +83,12 @@ html, body {
   cursor: pointer;
 }
 
-/* Эффект наведения (легкое подсвечивание) */
+/* Эффект наведения */
 .btn:hover {
   background: rgba(70, 70, 70, 0.85);
 }
 
-/* Активация через JS или нажатие */
+/* Эффект нажатия — общее состояние для :active и JS-класса .pressed */
 .btn:active,
 .btn.pressed {
   transform: scale(0.95);
@@ -97,15 +96,13 @@ html, body {
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.6), inset 0 -1px rgba(255, 255, 255, 0.12);
 }
 
-/* Стеклянный эффект */
-.btn:hover {
-  background: rgba(70, 70, 70, 0.85);
-}
-
 /* Цветовые акценты */
 .btn.op { background: rgba(50,50,50,0.85); }
-.btn.right { background: var(--accent); color: #111; font-weight: 700; }
-.equals { background: var(--accent); color: #111; font-weight: 700; }
+.btn.right, .equals {
+  background: var(--accent);
+  color: #111;
+  font-weight: 700;
+}
 .num { font-weight: 600; }
 
 /* Красные кнопки управления */
@@ -119,16 +116,9 @@ html, body {
   font-weight: 600;
 }
 
-/* Увеличенный экран при маленьких устройствах */
+/* Адаптация под узкие экраны */
 @media (max-width: 420px) {
   .calculator { padding: 12px; }
   .screen { font-size: 36px; }
   .btn { padding: 18px; font-size: 22px; }
-}
-/* Состояние нажатия через JS */
-.btn.pressed {
-  transform: scale(0.96);
-  background: rgba(70,70,70,0.9);
-  box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
-  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
 }
