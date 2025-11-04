@@ -360,14 +360,15 @@ acBtn.addEventListener('mousedown', handleACLongPress);
 acBtn.addEventListener('mouseup', cancelACLongPress);
 acBtn.addEventListener('mouseleave', cancelACLongPress);
 
-/* Анимация кнопок */
+/* УПРОЩЕННАЯ АНИМАЦИЯ КНОПОК - только вибрация, CSS handles the rest */
 document.querySelectorAll('.btn').forEach(btn => {
-  btn.addEventListener('touchstart', () => btn.classList.add('pressed'));
-  btn.addEventListener('touchend', () => setTimeout(() => btn.classList.remove('pressed'), 120));
-  btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'));
-  btn.addEventListener('mousedown', () => btn.classList.add('pressed'));
-  btn.addEventListener('mouseup', () => setTimeout(() => btn.classList.remove('pressed'), 120));
-  btn.addEventListener('mouseleave', () => btn.classList.remove('pressed'));
+  btn.addEventListener('mousedown', () => {
+    if (navigator.vibrate) navigator.vibrate(10);
+  });
+  
+  btn.addEventListener('touchstart', () => {
+    if (navigator.vibrate) navigator.vibrate(10);
+  }, { passive: true });
 });
 
 /* Обработка клавиатуры */
@@ -396,8 +397,7 @@ document.addEventListener('keydown', (e) => {
   
   if (btn) {
     btn.click();
-    btn.classList.add('pressed');
-    setTimeout(() => btn.classList.remove('pressed'), 120);
+    // Анимация нажатия обрабатывается CSS :active
     e.preventDefault();
   }
 });
