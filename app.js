@@ -6,6 +6,7 @@ let expr = '';
 let readyForNewInput = false;
 let replaceLastNumber = false;
 let calculationInProgress = false;
+let errorState = false;
 
 /* Отображение с доступностью */
 function renderScreen() {
@@ -49,36 +50,58 @@ function sanitizeForCalc(displayExpr) {
   return s;
 }
 
-/* Безопасное вычисление */
+/* Безопасное вычисление с улучшенной логикой ошибок */
 function safeEval(displayExpr) {
   const jsExpr = sanitizeForCalc(displayExpr);
   
-  if (!jsExpr) return '0';
+  if (!jsExpr) return null;
   
+  // Проверка на пустые выражения и синтаксические ошибки
   if (jsExpr.includes('()') || /[+\-*\/]$/.test(jsExpr)) {
-    return 'Ошибка';
+    return null;
   }
 
   try {
     const result = Function('"use strict";return(' + jsExpr + ')')();
     
     if (typeof result !== 'number' || !isFinite(result)) {
-      return result === Infinity ? 'Бесконечность' : 'Ошибка';
+      return null;
     }
     
+    // Обработка очень больших/маленьких чисел
+    if (Math.abs(result) > 1e15) return null;
+    if (Math.abs(result) < 1e-15 && result !== 0) return 0;
+    
     if (Number.isInteger(result)) {
-      return result.toString();
+      return result;
     } else {
-      return parseFloat(result.toFixed(10)).toString();
+      // Округление до 10 знаков с удалением лишних нулей
+      return parseFloat(result.toFixed(10));
     }
   } catch (error) {
-    console.error('Ошибка вычисления:', error);
-    return 'Ошибка';
+    return null;
   }
+}
+
+/* Обработка ошибки */
+function handleError() {
+  errorState = true;
+  expr = '';
+  screen.style.color = 'var(--danger)';
+  setTimeout(() => {
+    screen.style.color = '';
+    errorState = false;
+  }, 300);
 }
 
 /* Вставка символа */
 function insertChar(ch) {
+  if (errorState) {
+    expr = '';
+    errorState = false;
+    screen.style.color = '';
+  }
+  
   const lastChar = expr.slice(-1);
   const ops = ['+', '−', '×', '÷'];
   
@@ -99,29 +122,36 @@ function insertChar(ch) {
 
 /* Обработка равно */
 function handleEquals() {
-  if (calculationInProgress || !expr) return;
+  if (calculationInProgress || !expr || errorState) return;
   
   calculationInProgress = true;
   
   try {
-    const res = safeEval(expr);
+    const result = safeEval(expr);
     
-    if (res !== 'Ошибка' && res !== 'Бесконечность') {
-      addHistoryItem(expr, res);
+    if (result === null) {
+      handleError();
+    } else {
+      // Форматирование результата
+      let displayResult;
+      if (Number.isInteger(result)) {
+        displayResult = result.toString();
+      } else {
+        displayResult = parseFloat(result.toFixed(10)).toString();
+      }
+      
+      addHistoryItem(expr, displayResult);
+      expr = displayResult
+        .replace(/\*/g, '×')
+        .replace(/\//g, '÷')
+        .replace(/-/g, '−');
+      
+      renderScreen();
+      readyForNewInput = true;
     }
     
-    expr = String(res)
-      .replace(/\*/g, '×')
-      .replace(/\//g, '÷')
-      .replace(/-/g, '−');
-    
-    renderScreen();
-    readyForNewInput = true;
-    
   } catch (error) {
-    console.error('Ошибка в handleEquals:', error);
-    expr = 'Ошибка';
-    renderScreen();
+    handleError();
   } finally {
     setTimeout(() => {
       calculationInProgress = false;
@@ -131,6 +161,8 @@ function handleEquals() {
 
 /* Проценты */
 function handlePercent() {
+  if (errorState) return;
+  
   const lastChar = expr.slice(-1);
   if (!expr || ['+', '−', '×', '÷', '('].includes(lastChar)) return;
   
@@ -140,6 +172,12 @@ function handlePercent() {
 
 /* Скобки */
 function handleParen() {
+  if (errorState) {
+    expr = '';
+    errorState = false;
+    screen.style.color = '';
+  }
+  
   const open = (expr.match(/\(/g) || []).length;
   const close = (expr.match(/\)/g) || []).length;
   
@@ -161,6 +199,14 @@ function handleParen() {
 
 /* Удаление */
 function handleDelete() {
+  if (errorState) {
+    expr = '';
+    errorState = false;
+    screen.style.color = '';
+    renderScreen();
+    return;
+  }
+  
   if (expr.length > 0) {
     expr = expr.slice(0, -1);
     renderScreen();
@@ -175,6 +221,8 @@ function handleAllClear(longPress = false) {
   expr = '';
   readyForNewInput = false;
   replaceLastNumber = false;
+  errorState = false;
+  screen.style.color = '';
   renderScreen();
 }
 
@@ -212,6 +260,12 @@ keys.addEventListener('click', (e) => {
 
   if (val) {
     if (/[0-9.]/.test(val)) {
+      if (errorState) {
+        expr = '';
+        errorState = false;
+        screen.style.color = '';
+      }
+      
       if (readyForNewInput) {
         expr = '';
         readyForNewInput = false;
@@ -240,6 +294,8 @@ keys.addEventListener('click', (e) => {
 
 /* История — выбор результата */
 historyEl.addEventListener('click', (e) => {
+  if (errorState) return;
+  
   const line = e.target.closest('.line');
   if (!line) return;
   
@@ -260,7 +316,7 @@ historyEl.addEventListener('click', (e) => {
     
     if (navigator.vibrate) navigator.vibrate(10);
   } catch (error) {
-    console.error('Ошибка при выборе из истории:', error);
+    // Ничего не делаем при ошибке выбора из истории
   }
 });
 
