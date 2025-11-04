@@ -179,14 +179,40 @@ function handleAllClear(longPress = false) {
 }
 
 /* Обработка кликов по кнопкам */
-keys.addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-value], button[data-action]');
-  if (!btn) return;
-  
-  const val = btn.dataset.value;
-  const action = btn.dataset.action;
+// Добавьте этот код в конец app.js вместо существующих обработчиков кнопок
 
-  // Вибрация если поддерживается
+/* НАДЕЖНАЯ АНИМАЦИЯ КНОПОК */
+document.querySelectorAll('.btn').forEach(btn => {
+  // Функция для нажатия
+  const handlePress = () => {
+    btn.classList.add('pressed');
+    if (navigator.vibrate) navigator.vibrate(10);
+  };
+  
+  // Функция для отпускания
+  const handleRelease = () => {
+    btn.classList.remove('pressed');
+  };
+  
+  // Touch события
+  btn.addEventListener('touchstart', handlePress, { passive: true });
+  btn.addEventListener('touchend', handleRelease, { passive: true });
+  btn.addEventListener('touchcancel', handleRelease, { passive: true });
+  
+  // Mouse события
+  btn.addEventListener('mousedown', handlePress);
+  btn.addEventListener('mouseup', handleRelease);
+  btn.addEventListener('mouseleave', handleRelease);
+});
+
+// Гарантированное освобождение всех кнопок при клике вне кнопок
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.btn')) {
+    document.querySelectorAll('.btn.pressed').forEach(btn => {
+      btn.classList.remove('pressed');
+    });
+  }
+}); // Вибрация если поддерживается
   if (navigator.vibrate) navigator.vibrate(10);
 
   if (action) {
