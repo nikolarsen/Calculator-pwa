@@ -69,33 +69,32 @@ html, body {
 }
 
 /* Клавиши */
-.keys {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: auto;
-  flex-shrink: 0;
-}
-
-/* Кнопки */
+/* --- Кнопки со стеклянным эффектом и плавной анимацией --- */
 .btn {
   background: rgba(45, 45, 45, 0.85);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 20px 12px;
   font-size: 24px;
   color: var(--text);
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(255,255,255,0.08);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5), inset 0 -2px rgba(255, 255, 255, 0.08);
   touch-action: manipulation;
-  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.3s ease;
+  transition: all 0.15s ease;
+  cursor: pointer;
 }
 
-/* Анимация при нажатии */
-.btn:active {
-  transform: scale(0.96);
-  box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
-  background: rgba(60, 60, 60, 0.9);
+/* Эффект наведения (легкое подсвечивание) */
+.btn:hover {
+  background: rgba(70, 70, 70, 0.85);
+}
+
+/* Активация через JS или нажатие */
+.btn:active,
+.btn.pressed {
+  transform: scale(0.95);
+  background: rgba(100, 100, 100, 0.9);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.6), inset 0 -1px rgba(255, 255, 255, 0.12);
 }
 
 /* Стеклянный эффект */
