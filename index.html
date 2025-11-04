@@ -4,13 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Калькулятор</title>
-  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="theme-color" content="#111111">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
-  <meta name="theme-color" content="#111111">
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png">
+
+  <!-- Стили -->
+  <link rel="stylesheet" href="./styles.css" />
 </head>
+
 <body>
   <main class="calculator" role="application" aria-label="Калькулятор">
     <div class="topbar">
@@ -45,13 +50,18 @@
       <button class="btn left" data-action="percent">%</button>
       <button class="btn equals" data-action="equals">=</button>
     </div>
-    <div class="hint">Нажмите "=" для вычисления. Долгое нажатие на AC — очистить историю.</div>
+
+    <div class="hint">
+      Нажмите "=" для вычисления.<br>
+      Долгое нажатие на AC — очистить историю.
+    </div>
   </main>
 
-  <script src="/app.js"></script>
+  <!-- Скрипты -->
+  <script src="./app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(console.error);
+      navigator.serviceWorker.register('./sw.js').catch(console.error);
     }
   </script>
 </body>
