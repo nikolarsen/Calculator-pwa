@@ -5,154 +5,417 @@ const keys = document.getElementById('keys');
 let expr = '';
 let readyForNewInput = false;
 let replaceLastNumber = false;
+let calculationInProgress = false;
 
-/* Отображение */
+/* Отображение с доступностью */
 function renderScreen() {
-  screen.textContent = expr || '0';
+  const displayValue = expr || '0';
+  screen.textContent = displayValue;
+  screen.setAttribute('aria-label', `Экран: ${displayValue}`);
 }
 
-/* Добавление в историю */
+/* Добавление в историю с анимацией */
 function addHistoryItem(input, result) {
   const el = document.createElement('div');
   el.className = 'line';
   el.textContent = `${input} = ${result}`;
+  el.setAttribute('role', 'button');
+  el.setAttribute('tabindex', '0');
+  el.setAttribute('aria-label', `Вычисление: ${input} равно ${result}. Нажмите чтобы использовать результат`);
+  
+  // Анимация появления
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(-10px)';
+  
   historyEl.prepend(el);
-  while (historyEl.children.length > 30) historyEl.removeChild(historyEl.lastChild);
+  
+  // Запуск анимации
+  requestAnimationFrame(() => {
+    el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+
+  // Ограничение истории
+  while (historyEl.children.length > 30) {
+    historyEl.removeChild(historyEl.lastChild);
+  }
 }
 
 /* Подготовка выражения */
 function sanitizeForCalc(displayExpr) {
-  let s = displayExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+  if (!displayExpr) return '';
+  
+  let s = displayExpr
+    .replace(/×/g, '*')
+    .replace(/÷/g, '/')
+    .replace(/−/g, '-')
+    .replace(/\s/g, '');
+
+  // Обработка процентов: 50 + 10% -> 50 + (50 * 10 / 100)
   s = s.replace(/(\d+(?:\.\d+)?)([\+\-\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
+  
+  // Обработка одиночных процентов: 50% -> 0.5
   s = s.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+  
+  // Удаление небезопасных символов
   s = s.replace(/[^0-9+\-*/().]/g, '');
+  
   return s;
 }
 
-/* Безопасное вычисление */
+/* Безопасное вычисление с улучшенной обработкой ошибок */
 function safeEval(displayExpr) {
   const jsExpr = sanitizeForCalc(displayExpr);
+  
   if (!jsExpr) return '0';
+  
+  // Защита от пустых выражений и скобок
+  if (jsExpr.includes('()') || /[+\-*\/]$/.test(jsExpr)) {
+    return 'Ошибка';
+  }
+
   try {
+    // Используем Function для безопасного вычисления
     const result = Function('"use strict";return(' + jsExpr + ')')();
-    if (typeof result !== 'number' || !isFinite(result)) return '0';
-    return (Math.round((result + Number.EPSILON) * 1e12) / 1e12).toString();
-  } catch {
-    return '0';
+    
+    if (typeof result !== 'number' || !isFinite(result)) {
+      return result === Infinity ? 'Бесконечность' : 'Ошибка';
+    }
+    
+    // Умное округление для избежания floating point ошибок
+    if (Number.isInteger(result)) {
+      return result.toString();
+    } else {
+      // Округляем до 10 знаков, но убираем лишние нули
+      return parseFloat(result.toFixed(10)).toString();
+    }
+  } catch (error) {
+    console.error('Ошибка вычисления:', error);
+    return 'Ошибка';
   }
 }
 
-/* Символы */
+/* Вставка символа с улучшенной логикой */
 function insertChar(ch) {
-  const last = expr.slice(-1);
+  const lastChar = expr.slice(-1);
   const ops = ['+', '−', '×', '÷'];
-  if (ops.includes(last) && ops.includes(ch)) expr = expr.slice(0, -1) + ch;
-  else expr += ch;
+  
+  if (readyForNewInput) {
+    expr = '';
+    readyForNewInput = false;
+  }
+  
+  // Замена оператора, если последний символ - оператор
+  if (ops.includes(lastChar) && ops.includes(ch)) {
+    expr = expr.slice(0, -1) + ch;
+  } 
+  // Добавление оператора после результата
+  else if (readyForNewInput && ops.includes(ch)) {
+    expr += ch;
+    readyForNewInput = false;
+  }
+  else {
+    expr += ch;
+  }
+  
+  replaceLastNumber = false;
+  renderScreen();
+}
+
+/* Обработка равно с защитой от множественных вычислений */
+function handleEquals() {
+  if (calculationInProgress || !expr) return;
+  
+  calculationInProgress = true;
+  
+  try {
+    screen.setAttribute('aria-live', 'polite');
+    const res = safeEval(expr);
+    
+    if (res !== 'Ошибка' && res !== 'Бесконечность') {
+      addHistoryItem(expr, res);
+    }
+    
+    expr = String(res)
+      .replace(/\*/g, '×')
+      .replace(/\//g, '÷')
+      .replace(/-/g, '−');
+    
+    renderScreen();
+    readyForNewInput = true;
+    
+    // Визуальный feedback при ошибке
+    if (res === 'Ошибка' || res === 'Бесконечность') {
+      screen.style.color = 'var(--danger)';
+      setTimeout(() => {
+        screen.style.color = '';
+      }, 1000);
+    }
+    
+  } catch (error) {
+    console.error('Ошибка в handleEquals:', error);
+    expr = 'Ошибка';
+    renderScreen();
+  } finally {
+    setTimeout(() => {
+      calculationInProgress = false;
+      screen.setAttribute('aria-live', 'off');
+    }, 100);
+  }
+}
+
+/* Проценты с улучшенной логикой */
+function handlePercent() {
+  const lastChar = expr.slice(-1);
+  if (!expr || ['+', '−', '×', '÷', '('].includes(lastChar)) return;
+  
+  expr += '%';
+  renderScreen();
+}
+
+/* Умные скобки */
+function handleParen() {
+  const open = (expr.match(/\(/g) || []).length;
+  const close = (expr.match(/\)/g) || []).length;
+  
+  if (readyForNewInput) {
+    expr = '';
+    readyForNewInput = false;
+  }
+  
+  if (!expr || /[+−×÷(]$/.test(expr)) {
+    expr += '(';
+  } else if (open > close && !/[+−×÷(]$/.test(expr)) {
+    expr += ')';
+  } else {
+    expr += '×(';
+  }
+  
+  renderScreen();
+}
+
+/* Удаление с проверкой */
+function handleDelete() {
+  if (expr.length > 0) {
+    expr = expr.slice(0, -1);
+    renderScreen();
+  }
+}
+
+/* Очистка */
+function handleAllClear(longPress = false) {
+  if (longPress) {
+    historyEl.innerHTML = '';
+    // Анимация очистки истории
+    historyEl.style.opacity = '0.5';
+    setTimeout(() => {
+      historyEl.style.opacity = '1';
+      historyEl.style.transition = 'opacity 0.3s ease';
+    }, 300);
+  }
+  expr = '';
   readyForNewInput = false;
   replaceLastNumber = false;
   renderScreen();
 }
 
-/* Равно */
-function handleEquals() {
-  if (!expr) return;
-  const res = safeEval(expr);
-  addHistoryItem(expr, res);
-  expr = String(res).replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−');
-  renderScreen();
-  readyForNewInput = true;
+/* Копирование результата */
+function copyResult() {
+  const result = screen.textContent;
+  if (navigator.clipboard && result !== '0') {
+    navigator.clipboard.writeText(result.replace(/[×÷−]/g, ch => {
+      return { '×': '*', '÷': '/', '−': '-' }[ch] || ch;
+    })).then(() => {
+      // Визуальная обратная связь
+      const originalColor = screen.style.color;
+      screen.style.color = 'var(--accent)';
+      setTimeout(() => {
+        screen.style.color = originalColor;
+      }, 500);
+    }).catch(err => {
+      console.error('Ошибка копирования:', err);
+    });
+  }
 }
 
-/* Проценты */
-function handlePercent() {
-  const last = expr.slice(-1);
-  if (!expr || ['+','−','×','÷','('].includes(last)) return;
-  expr += '%';
-  renderScreen();
-}
-
-/* Скобки */
-function handleParen() {
-  const open = (expr.match(/\(/g) || []).length;
-  const close = (expr.match(/\)/g) || []).length;
-  if (!expr || /[+−×÷]$/.test(expr)) expr += '(';
-  else if (open > close) expr += ')';
-  else expr += '(';
-  renderScreen();
-}
-
-/* Удалить */
-function handleDelete() {
-  expr = expr.slice(0, -1);
-  renderScreen();
-}
-
-/* Очистить */
-function handleAllClear(long=false) {
-  if (long) historyEl.innerHTML = '';
-  expr = '';
-  renderScreen();
-}
-
-/* Обработка кликов */
+/* Обработка кликов по кнопкам */
 keys.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-value], button[data-action]');
   if (!btn) return;
+  
   const val = btn.dataset.value;
   const action = btn.dataset.action;
 
+  // Вибрация если поддерживается
   if (navigator.vibrate) navigator.vibrate(10);
 
   if (action) {
-    if (action === 'all-clear') return handleAllClear(false);
-    if (action === 'delete') return handleDelete();
-    if (action === 'equals') return handleEquals();
-    if (action === 'percent') return handlePercent();
-    if (action === 'paren') return handleParen();
+    switch (action) {
+      case 'all-clear':
+        handleAllClear(false);
+        break;
+      case 'delete':
+        handleDelete();
+        break;
+      case 'equals':
+        handleEquals();
+        break;
+      case 'percent':
+        handlePercent();
+        break;
+      case 'paren':
+        handleParen();
+        break;
+    }
+    return;
   }
 
   if (val) {
     if (/[0-9.]/.test(val)) {
-      if (readyForNewInput) expr = '';
-      else if (replaceLastNumber) expr = expr.replace(/([0-9.]+)$/, '');
+      if (readyForNewInput) {
+        expr = '';
+        readyForNewInput = false;
+      } else if (replaceLastNumber) {
+        expr = expr.replace(/([0-9.]+)$/, '');
+        replaceLastNumber = false;
+      }
+      
       const parts = expr.split(/[^0-9.]/);
-      const lastNum = parts[parts.length-1] || '';
+      const lastNum = parts[parts.length - 1] || '';
+      
+      // Запрет множественных точек
       if (val === '.' && lastNum.includes('.')) return;
-      expr += val;
+      
+      // Добавление нуля перед точкой если нужно
+      if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
+        expr += '0.';
+      } else {
+        expr += val;
+      }
+      
       renderScreen();
-    } else insertChar(val);
+    } else {
+      insertChar(val);
+    }
   }
 });
 
 /* История — выбор результата */
-historyEl.addEventListener('click', (e)=>{
+historyEl.addEventListener('click', (e) => {
   const line = e.target.closest('.line');
   if (!line) return;
-  const text = line.textContent.split('=')[1].trim();
-  const lastChar = expr.slice(-1);
-  const ops = ['+','−','×','÷','(',')'];
-  if (expr && !ops.includes(lastChar))
-    expr = expr.replace(/([0-9.]+)$/, text);
-  else expr += text;
-  replaceLastNumber = true;
-  renderScreen();
-  if (navigator.vibrate) navigator.vibrate(10);
+  
+  try {
+    const text = line.textContent.split('=')[1].trim();
+    const lastChar = expr.slice(-1);
+    const ops = ['+', '−', '×', '÷', '(', ')'];
+    
+    if (expr && !ops.includes(lastChar)) {
+      expr = expr.replace(/([0-9.]+)$/, text);
+    } else {
+      expr += text;
+    }
+    
+    replaceLastNumber = true;
+    readyForNewInput = false;
+    renderScreen();
+    
+    if (navigator.vibrate) navigator.vibrate(10);
+  } catch (error) {
+    console.error('Ошибка при выборе из истории:', error);
+  }
+});
+
+// Поддержка клавиатуры для истории
+historyEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    e.target.click();
+  }
 });
 
 /* Долгое нажатие AC — очистить всё */
 let acTimer = null;
 const acBtn = document.querySelector('[data-action="all-clear"]');
-acBtn.addEventListener('touchstart', ()=> {
-  acTimer = setTimeout(()=> handleAllClear(true), 700);
-});
-acBtn.addEventListener('touchend', ()=> clearTimeout(acTimer));
+
+function handleACLongPress() {
+  acTimer = setTimeout(() => {
+    handleAllClear(true);
+    if (navigator.vibrate) navigator.vibrate(50);
+  }, 700);
+}
+
+function cancelACLongPress() {
+  if (acTimer) {
+    clearTimeout(acTimer);
+    acTimer = null;
+  }
+}
+
+acBtn.addEventListener('touchstart', handleACLongPress);
+acBtn.addEventListener('touchend', cancelACLongPress);
+acBtn.addEventListener('touchcancel', cancelACLongPress);
+acBtn.addEventListener('mousedown', handleACLongPress);
+acBtn.addEventListener('mouseup', cancelACLongPress);
+acBtn.addEventListener('mouseleave', cancelACLongPress);
 
 /* Анимация кнопок */
 document.querySelectorAll('.btn').forEach(btn => {
   btn.addEventListener('touchstart', () => btn.classList.add('pressed'));
   btn.addEventListener('touchend', () => setTimeout(() => btn.classList.remove('pressed'), 120));
+  btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'));
   btn.addEventListener('mousedown', () => btn.classList.add('pressed'));
   btn.addEventListener('mouseup', () => setTimeout(() => btn.classList.remove('pressed'), 120));
+  btn.addEventListener('mouseleave', () => btn.classList.remove('pressed'));
 });
 
+/* Обработка клавиатуры */
+document.addEventListener('keydown', (e) => {
+  const key = e.key;
+  const keyActions = {
+    'Enter': 'equals',
+    '=': 'equals',
+    'Escape': 'all-clear',
+    'Delete': 'all-clear',
+    'Backspace': 'delete',
+    '%': 'percent',
+    '(': 'paren',
+    ')': 'paren'
+  };
+  
+  const action = keyActions[key];
+  let btn = null;
+  
+  if (action) {
+    btn = document.querySelector(`[data-action="${action}"]`);
+  } else if (/[0-9\.+\-*/]/.test(key)) {
+    const displayKey = key.replace('*', '×').replace('/', '÷').replace('-', '−');
+    btn = document.querySelector(`[data-value="${displayKey}"]`);
+  }
+  
+  if (btn) {
+    btn.click();
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 120);
+    e.preventDefault();
+  }
+});
+
+/* Двойной тап по экрану для копирования */
+screen.addEventListener('dblclick', copyResult);
+
+// Обработчик для доступности
+screen.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    copyResult();
+  }
+});
+
+/* Инициализация */
 renderScreen();
+
+// Установка заголовка для доступности
+screen.setAttribute('role', 'status');
+screen.setAttribute('aria-live', 'off');
