@@ -13,16 +13,19 @@
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png">
 
   <!-- Стили -->
-  <link rel="stylesheet" href="./styles.css?v=5" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
   <main class="calculator" role="application" aria-label="Калькулятор">
-    <div class="topbar">
-      <div class="history" id="history" aria-live="polite"></div>
-    </div>
 
-    <div class="screen" id="screen" aria-atomic="true">0</div>
+    <div class="top-container">
+      <div class="topbar">
+        <div class="history" id="history" aria-live="polite"></div>
+      </div>
+
+      <div class="screen" id="screen" aria-atomic="true">0</div>
+    </div>
 
     <div class="keys" id="keys">
       <!-- Верхний ряд -->
@@ -49,14 +52,14 @@
 
       <!-- Нижний ряд -->
       <button class="btn left" data-action="percent">%</button>
-      <button class="btn num" data-value="0">0</button>
+      <button class="btn left" data-value="0">0</button>
       <button class="btn left" data-value=".">.</button>
       <button class="btn equals" data-action="equals">=</button>
     </div>
+
   </main>
 
-  <!-- Скрипты -->
-  <script src="./app.js?v=5"></script>
+  <script src="./app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(console.error);
