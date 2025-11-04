@@ -62,7 +62,6 @@
       navigator.serviceWorker.register('./sw.js')
         .then(registration => {
           console.log('SW registered: ', registration);
-          // Проверяем обновления при загрузке
           registration.update();
         })
         .catch(registrationError => {
