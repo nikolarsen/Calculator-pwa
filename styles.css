@@ -3,9 +3,9 @@
   --panel:rgba(34,36,38,0.6);
   --accent:rgba(255,154,42,0.8);
   --red:rgba(220,60,60,0.8);
+  --op-bg:rgba(43,43,43,0.6);
   --text:#e9e9e9;
   --muted:#8f8f8f;
-  --op-bg:rgba(43,43,43,0.6);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing:antialiased;
 }
@@ -31,6 +31,13 @@ html,body{
   min-height:100vh;
   display:flex;
   flex-direction:column;
+}
+
+.top-container{
+  display:flex;
+  flex-direction:column;
+  flex-grow:1;         /* занимает всё доступное пространство */
+  justify-content:flex-end; /* прижимает экран и историю к клавишам */
 }
 
 .topbar{
@@ -66,8 +73,8 @@ html,body{
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:6px; /* чуть меньше отступ */
-  margin-top:auto;
+  gap:6px;
+  margin-top:auto; /* прижимает клавиши к низу */
 }
 
 .btn{
