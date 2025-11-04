@@ -5,7 +5,7 @@
   --text:#e9e9e9;
   --muted:#8f8f8f;
   --op-bg:#2b2b2b;
-  --red-btn: #c64c4c;
+  --red-btn:#c64c4c;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing:antialiased;
 }
@@ -85,8 +85,8 @@ html,body{
   touch-action: manipulation;
 }
 
-/* Добавляем новый класс для анимации на сенсорных устройствах */
-.btn.active {
+/* Анимация нажатия */
+.btn:active, .btn.active {
   transform: translateY(2px);
   box-shadow: 0 2px 5px rgba(0,0,0,0.6), inset 0 -1px rgba(0,0,0,0.3);
   background: rgba(255,255,255,0.1);
@@ -103,15 +103,3 @@ html,body{
 /* Операторы */
 .btn.op, .keys > .right.op{background:var(--accent); color:#111; font-weight:700;}
 .equals{background:var(--accent); color:#111; font-weight:700; border-radius:12px;}
-
-/* Нижний ряд кнопки */
-.keys > .left[data-action="percent"] { grid-column:1; }
-.keys > .num[data-value="0"] { grid-column:2; }
-.keys > .num[data-value="."] { grid-column:3; }
-.keys > .equals { grid-column:4; }
-
-@media (max-width:420px){
-  .calculator{padding:12px;}
-  .screen{font-size:36px;}
-  .btn{padding:18px; font-size:22px;}
-}
