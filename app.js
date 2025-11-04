@@ -3,22 +3,21 @@ const historyEl = document.getElementById('history');
 const keys = document.getElementById('keys');
 
 let expr = '';
-let lastResult = null;
 let readyForNewInput = false;
 let replaceLastNumber = false;
 
-/* Обновление экрана */
+/* Отображение */
 function renderScreen() {
   screen.textContent = expr || '0';
 }
 
-/* Добавление записи в историю */
+/* Добавление в историю */
 function addHistoryItem(input, result) {
   const el = document.createElement('div');
   el.className = 'line';
   el.textContent = `${input} = ${result}`;
   historyEl.prepend(el);
-  while (historyEl.children.length > 20) historyEl.removeChild(historyEl.lastChild);
+  while (historyEl.children.length > 30) historyEl.removeChild(historyEl.lastChild);
 }
 
 /* Подготовка выражения */
@@ -35,7 +34,7 @@ function safeEval(displayExpr) {
   const jsExpr = sanitizeForCalc(displayExpr);
   if (!jsExpr) return '0';
   try {
-    const result = Function('"use strict"; return (' + jsExpr + ')')();
+    const result = Function('"use strict";return(' + jsExpr + ')')();
     if (typeof result !== 'number' || !isFinite(result)) return '0';
     return (Math.round((result + Number.EPSILON) * 1e12) / 1e12).toString();
   } catch {
@@ -43,10 +42,10 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа */
+/* Символы */
 function insertChar(ch) {
   const last = expr.slice(-1);
-  const ops = ['+', '−', '×', '÷', '*', '/'];
+  const ops = ['+', '−', '×', '÷'];
   if (ops.includes(last) && ops.includes(ch)) expr = expr.slice(0, -1) + ch;
   else expr += ch;
   readyForNewInput = false;
@@ -54,18 +53,17 @@ function insertChar(ch) {
   renderScreen();
 }
 
-/* Обработка "=" */
+/* Равно */
 function handleEquals() {
   if (!expr) return;
   const res = safeEval(expr);
   addHistoryItem(expr, res);
   expr = String(res).replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−');
   renderScreen();
-  lastResult = res;
   readyForNewInput = true;
 }
 
-/* Процент */
+/* Проценты */
 function handlePercent() {
   const last = expr.slice(-1);
   if (!expr || ['+','−','×','÷','('].includes(last)) return;
@@ -83,35 +81,34 @@ function handleParen() {
   renderScreen();
 }
 
-/* Удаление символа */
+/* Удалить */
 function handleDelete() {
   expr = expr.slice(0, -1);
   renderScreen();
 }
 
-/* Очистка */
+/* Очистить */
 function handleAllClear(long=false) {
   if (long) historyEl.innerHTML = '';
   expr = '';
   renderScreen();
 }
 
-/* Нажатие кнопок */
+/* Обработка кликов */
 keys.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-value], button[data-action]');
   if (!btn) return;
   const val = btn.dataset.value;
   const action = btn.dataset.action;
 
-  // Виброотклик (работает на iPhone)
   if (navigator.vibrate) navigator.vibrate(10);
 
-  switch(action) {
-    case 'all-clear': return handleAllClear(false);
-    case 'delete': return handleDelete();
-    case 'equals': return handleEquals();
-    case 'percent': return handlePercent();
-    case 'paren': return handleParen();
+  if (action) {
+    if (action === 'all-clear') return handleAllClear(false);
+    if (action === 'delete') return handleDelete();
+    if (action === 'equals') return handleEquals();
+    if (action === 'percent') return handlePercent();
+    if (action === 'paren') return handleParen();
   }
 
   if (val) {
@@ -127,7 +124,7 @@ keys.addEventListener('click', (e) => {
   }
 });
 
-/* Выбор из истории */
+/* История — выбор результата */
 historyEl.addEventListener('click', (e)=>{
   const line = e.target.closest('.line');
   if (!line) return;
@@ -142,23 +139,20 @@ historyEl.addEventListener('click', (e)=>{
   if (navigator.vibrate) navigator.vibrate(10);
 });
 
-/* Долгое нажатие AC для очистки истории */
+/* Долгое нажатие AC — очистить всё */
 let acTimer = null;
 const acBtn = document.querySelector('[data-action="all-clear"]');
 acBtn.addEventListener('touchstart', ()=> {
   acTimer = setTimeout(()=> handleAllClear(true), 700);
 });
-acBtn.addEventListener('touchend', ()=> {
-  clearTimeout(acTimer);
-});
+acBtn.addEventListener('touchend', ()=> clearTimeout(acTimer));
 
-/* Анимация кнопок (универсально для всех) */
+/* Анимация кнопок */
 document.querySelectorAll('.btn').forEach(btn => {
   btn.addEventListener('touchstart', () => btn.classList.add('pressed'));
-  btn.addEventListener('touchend', () => setTimeout(() => btn.classList.remove('pressed'), 150));
+  btn.addEventListener('touchend', () => setTimeout(() => btn.classList.remove('pressed'), 120));
   btn.addEventListener('mousedown', () => btn.classList.add('pressed'));
-  btn.addEventListener('mouseup', () => setTimeout(() => btn.classList.remove('pressed'), 150));
+  btn.addEventListener('mouseup', () => setTimeout(() => btn.classList.remove('pressed'), 120));
 });
 
-/* Инициализация */
 renderScreen();
