@@ -5,6 +5,7 @@
   --text:#e9e9e9;
   --muted:#8f8f8f;
   --op-bg:#2b2b2b;
+  --red-btn: #c64c4c;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing:antialiased;
 }
@@ -30,7 +31,7 @@ html,body{
   min-height:100vh;
   display:flex;
   flex-direction:column;
-  justify-content: flex-end; /* прижимает кнопки к низу */
+  justify-content:flex-end;
 }
 
 .topbar{
@@ -38,7 +39,7 @@ html,body{
   justify-content:flex-end;
   align-items:flex-end;
   min-height:110px;
-  margin-bottom:8px; /* чуть больше отступ */
+  margin-bottom:8px;
 }
 
 .history{
@@ -67,40 +68,49 @@ html,body{
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:6px; /* чуть меньше расстояния между кнопками */
+  gap:6px;
 }
 
 .btn{
-  background: linear-gradient(145deg, #444, #111); /* более контрастный градиент */
-  border:0;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(8px);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;
   padding:20px 12px;
   font-size:24px;
   color:var(--text);
-  border-radius:10px;
-  box-shadow: 0 5px 8px rgba(0,0,0,0.5), inset 0 -2px rgba(0,0,0,0.3);
+  font-weight:600;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.5), inset 0 -2px rgba(0,0,0,0.25);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
   touch-action: manipulation;
-  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.2s ease;
 }
 
 .btn:active{
-  transform:translateY(2px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 -1px rgba(0,0,0,0.3);
-  background: linear-gradient(145deg, #111, #444);
+  transform: translateY(2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.6), inset 0 -1px rgba(0,0,0,0.3);
+  background: rgba(255,255,255,0.1);
 }
 
-.btn.op{background:var(--op-bg);}
-.btn.left{background:#272727;}
-.btn.right{background:var(--accent);color:#111;font-weight:700;}
-.equals{background:var(--accent);color:#111;font-weight:700;border-radius:10px;}
-.num{font-weight:600;}
+/* Верхний ряд красные кнопки */
+.keys > .left[data-action="all-clear"],
+.keys > .left[data-action="paren"],
+.keys > .left[data-action="delete"] {
+  background: var(--red-btn);
+  color:#fff;
+}
 
-/* Column with operator style */
-.keys > .right.op{background:var(--accent);color:#111;}
-.keys > .right{background:var(--accent);color:#111;}
+/* Операторы */
+.btn.op, .keys > .right.op{background:var(--accent); color:#111; font-weight:700;}
+.equals{background:var(--accent); color:#111; font-weight:700; border-radius:12px;}
 
-/* Responsive */
+/* Нижний ряд кнопки */
+.keys > .left[data-action="percent"] { grid-column:1; }
+.keys > .num[data-value="0"] { grid-column:2; }
+.keys > .num[data-value="."] { grid-column:3; }
+.keys > .equals { grid-column:4; }
+
 @media (max-width:420px){
   .calculator{padding:12px;}
   .screen{font-size:32px;}
-  .btn{padding:18px;font-size:22px;}
+  .btn{padding:18px; font-size:22px;}
 }
