@@ -30,6 +30,7 @@ html,body{
   min-height:100vh;
   display:flex;
   flex-direction:column;
+  justify-content: flex-end; /* прижимает кнопки к низу */
 }
 
 .topbar{
@@ -37,7 +38,7 @@ html,body{
   justify-content:flex-end;
   align-items:flex-end;
   min-height:110px;
-  margin-bottom:6px; /* Отступ между историей и экраном */
+  margin-bottom:8px; /* чуть больше отступ */
 }
 
 .history{
@@ -49,6 +50,7 @@ html,body{
   width:100%;
   padding-right:10px;
   text-align:right;
+  margin-bottom:4px;
 }
 
 .screen{
@@ -58,33 +60,32 @@ html,body{
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  margin-bottom:6px; /* Отступ перед клавишами */
+  margin-bottom:8px;
   flex-shrink:0;
 }
 
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:8px; /* уменьшено расстояние между кнопками */
-  margin-top:auto; /* прижимает клавиши к низу */
+  gap:6px; /* чуть меньше расстояния между кнопками */
 }
 
 .btn{
-  background:linear-gradient(145deg, #2c2c2c, #1f1f1f);
+  background: linear-gradient(145deg, #444, #111); /* более контрастный градиент */
   border:0;
-  padding:20px 12px; /* увеличена высота кнопок */
-  font-size:24px; /* увеличен размер шрифта */
+  padding:20px 12px;
+  font-size:24px;
   color:var(--text);
   border-radius:10px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(0,0,0,0.25);
+  box-shadow: 0 5px 8px rgba(0,0,0,0.5), inset 0 -2px rgba(0,0,0,0.3);
   touch-action: manipulation;
   transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.2s ease;
 }
 
 .btn:active{
   transform:translateY(2px);
-  box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(0,0,0,0.25);
-  background:linear-gradient(145deg, #1f1f1f, #2c2c2c);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 -1px rgba(0,0,0,0.3);
+  background: linear-gradient(145deg, #111, #444);
 }
 
 .btn.op{background:var(--op-bg);}
