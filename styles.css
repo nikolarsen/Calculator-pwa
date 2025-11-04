@@ -119,45 +119,36 @@ html, body {
   overflow: hidden;
 }
 
-/* Анимация при нажатии - ТОЛЬКО ДЛЯ ЧИСЛОВЫХ КНОПОК (как у операторов) */
+/* Анимация при нажатии - ТЕМНЕЕ чем обычное состояние */
 .btn:active {
   transform: scale(0.96) translateZ(0);
   box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
+  background: rgba(30, 30, 30, 0.9); /* ТЕМНЕЕ обычного */
 }
 
-/* ЧИСЛОВЫЕ КНОПКИ - делаем как операторы */
+/* ЧИСЛОВЫЕ КНОПКИ */
 .btn.num {
-  background: rgba(45, 45, 45, 0.85);
+  background: rgba(45, 45, 45, 0.85); /* Обычное состояние */
   font-weight: 600;
 }
 
-.btn.num:hover {
-  background: rgba(70, 70, 70, 0.85);
-}
-
 .btn.num:active {
-  background: rgba(60, 60, 60, 0.9);
+  background: rgba(30, 30, 30, 0.9); /* Нажатое - ТЕМНЕЕ */
 }
 
-/* КНОПКИ ОПЕРАТОРОВ И РАВНО - оставляем как есть */
+/* КНОПКИ ОПЕРАТОРОВ И РАВНО */
 .btn.op,
 .btn.right,
 .btn.equals {
-  background: var(--accent);
+  background: var(--accent); /* Обычное состояние */
   color: #111;
   font-weight: 700;
-}
-
-.btn.op:hover,
-.btn.right:hover,
-.btn.equals:hover {
-  background: #ffab4d;
 }
 
 .btn.op:active,
 .btn.right:active,
 .btn.equals:active {
-  background: #e6891a;
+  background: #e6891a; /* Нажатое - ТЕМНЕЕ оранжевый */
 }
 
 /* КРАСНЫЕ КНОПКИ УПРАВЛЕНИЯ */
@@ -166,17 +157,9 @@ html, body {
 .btn[data-action="delete"],
 .btn[data-action="percent"],
 .btn[data-value="."] {
-  background: var(--danger);
+  background: var(--danger); /* Обычное состояние */
   color: #fff;
   font-weight: 600;
-}
-
-.btn[data-action="all-clear"]:hover,
-.btn[data-action="paren"]:hover,
-.btn[data-action="delete"]:hover,
-.btn[data-action="percent"]:hover,
-.btn[data-value="."]:hover {
-  background: #ff6b6b;
 }
 
 .btn[data-action="all-clear"]:active,
@@ -184,7 +167,7 @@ html, body {
 .btn[data-action="delete"]:active,
 .btn[data-action="percent"]:active,
 .btn[data-value="."]:active {
-  background: #ff3b3b;
+  background: #cc0000; /* Нажатое - ТЕМНЕЕ красный */
 }
 
 /* Состояние фокуса для доступности */
@@ -233,50 +216,36 @@ html, body {
   }
   
   .btn {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.85); /* Обычное состояние */
     border: 1px solid rgba(0, 0, 0, 0.1);
     box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -2px rgba(0,0,0,0.05);
     color: var(--text);
   }
   
   .btn:active {
-    background: rgba(240, 240, 240, 0.9);
-  }
-  
-  .btn:hover {
-    background: rgba(250, 250, 250, 0.85);
+    background: rgba(220, 220, 220, 0.9); /* Нажатое - ТЕМНЕЕ */
   }
   
   .btn.num {
-    background: rgba(255, 255, 255, 0.85);
-  }
-  
-  .btn.num:hover {
-    background: rgba(250, 250, 250, 0.85);
+    background: rgba(255, 255, 255, 0.85); /* Обычное состояние */
   }
   
   .btn.num:active {
-    background: rgba(240, 240, 240, 0.9);
+    background: rgba(220, 220, 220, 0.9); /* Нажатое - ТЕМНЕЕ */
   }
   
   /* Операторы и равно в светлой теме */
   .btn.op,
   .btn.right,
   .btn.equals {
-    background: var(--accent);
+    background: var(--accent); /* Обычное состояние */
     color: #111;
-  }
-  
-  .btn.op:hover,
-  .btn.right:hover,
-  .btn.equals:hover {
-    background: #ffab4d;
   }
   
   .btn.op:active,
   .btn.right:active,
   .btn.equals:active {
-    background: #e6891a;
+    background: #e6891a; /* Нажатое - ТЕМНЕЕ оранжевый */
   }
   
   /* Красные кнопки в светлой теме */
@@ -285,16 +254,8 @@ html, body {
   .btn[data-action="delete"],
   .btn[data-action="percent"],
   .btn[data-value="."] {
-    background: var(--danger);
+    background: var(--danger); /* Обычное состояние */
     color: #fff;
-  }
-  
-  .btn[data-action="all-clear"]:hover,
-  .btn[data-action="paren"]:hover,
-  .btn[data-action="delete"]:hover,
-  .btn[data-action="percent"]:hover,
-  .btn[data-value="."]:hover {
-    background: #ff6b6b;
   }
   
   .btn[data-action="all-clear"]:active,
@@ -302,7 +263,7 @@ html, body {
   .btn[data-action="delete"]:active,
   .btn[data-action="percent"]:active,
   .btn[data-value="."]:active {
-    background: #ff3b3b;
+    background: #cc0000; /* Нажатое - ТЕМНЕЕ красный */
   }
   
   .history {
