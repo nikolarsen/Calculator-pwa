@@ -6,6 +6,7 @@ let expr = '';
 let lastResult = null;
 let history = [];
 let readyForNewInput = false; // новый ввод после =
+let replaceLastNumber = false; // следующий ввод цифры заменяет последнее число
 
 // Отображение на экране
 function renderScreen() {
@@ -54,7 +55,8 @@ function insertChar(ch) {
   } else {
     expr += ch;
   }
-  readyForNewInput = false; // новый ввод продолжается
+  readyForNewInput = false;
+  replaceLastNumber = false;
   renderScreen();
 }
 
@@ -66,7 +68,8 @@ function handleEquals() {
   expr = String(res).replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−');
   renderScreen();
   lastResult = res;
-  readyForNewInput = true; // включаем флаг для следующего ввода
+  readyForNewInput = true;
+  replaceLastNumber = false;
 }
 
 // Процент
@@ -81,6 +84,7 @@ function handlePercent() {
   if (ops.includes(last)) return;
   expr += '%';
   readyForNewInput = false;
+  replaceLastNumber = false;
   renderScreen();
 }
 
@@ -96,6 +100,7 @@ function handleParen() {
     expr += '(';
   }
   readyForNewInput = false;
+  replaceLastNumber = false;
   renderScreen();
 }
 
@@ -103,6 +108,7 @@ function handleParen() {
 function handleDelete() {
   expr = expr.slice(0, -1);
   readyForNewInput = false;
+  replaceLastNumber = false;
   renderScreen();
 }
 
@@ -114,6 +120,7 @@ function handleAllClear(long=false) {
   }
   expr = '';
   readyForNewInput = false;
+  replaceLastNumber = false;
   renderScreen();
 }
 
@@ -138,6 +145,9 @@ keys.addEventListener('click', (e) => {
       if (readyForNewInput) {
         expr = '';
         readyForNewInput = false;
+      } else if (replaceLastNumber) {
+        expr = expr.replace(/([0-9.]+)$/, '');
+        replaceLastNumber = false;
       }
       const parts = expr.split(/[^0-9.]/);
       const lastNum = parts[parts.length-1] || '';
@@ -158,11 +168,11 @@ historyEl.addEventListener('click', (e)=>{
   const lastChar = expr.slice(-1);
   const ops = ['+','−','×','÷','(',')'];
   if (expr && !ops.includes(lastChar)) {
-    // заменяем последнее число на выбранный результат
     expr = expr.replace(/([0-9.]+)$/, text);
   } else {
     expr += text;
   }
+  replaceLastNumber = true; // новый ввод заменит вставленное число
   readyForNewInput = false;
   renderScreen();
   if (navigator.vibrate) navigator.vibrate(10);
@@ -182,8 +192,10 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); handleEquals(); return; }
   if (e.key === 'Backspace') { handleDelete(); return; }
   if (e.key === 'Escape') { handleAllClear(false); return; }
+
   if (/[0-9]/.test(e.key) || e.key === '.') {
     if (readyForNewInput) { expr = ''; readyForNewInput = false; }
+    else if (replaceLastNumber) { expr = expr.replace(/([0-9.]+)$/, ''); replaceLastNumber = false; }
     const parts = expr.split(/[^0-9.]/);
     const lastNum = parts[parts.length-1] || '';
     if (e.key === '.' && lastNum.includes('.')) return;
@@ -191,6 +203,7 @@ window.addEventListener('keydown', (e) => {
     renderScreen();
     return;
   }
+
   if (e.key === '+' || e.key === '-') { insertChar(e.key === '-' ? '−' : '+'); return; }
   if (e.key === '*' || e.key === 'x') { insertChar('×'); return; }
   if (e.key === '/') { insertChar('÷'); return; }
