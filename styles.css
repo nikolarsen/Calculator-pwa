@@ -25,6 +25,7 @@ html, body {
   overflow: hidden;
 }
 
+/* Контейнер всего приложения */
 .calculator {
   max-width: 420px;
   margin: 0 auto;
@@ -36,6 +37,7 @@ html, body {
   background: var(--bg);
 }
 
+/* Верхняя часть с историей */
 .topbar {
   flex: 1;
   display: flex;
@@ -46,6 +48,7 @@ html, body {
   margin-bottom: 6px;
 }
 
+/* История */
 .history {
   color: var(--muted);
   font-size: 18px;
@@ -57,6 +60,7 @@ html, body {
   min-height: 24px;
 }
 
+/* Кастомный скроллбар для истории */
 .history::-webkit-scrollbar {
   width: 4px;
 }
@@ -74,6 +78,7 @@ html, body {
   background: var(--accent);
 }
 
+/* Экран */
 .screen {
   font-size: 42px;
   padding: 10px 12px;
@@ -87,6 +92,7 @@ html, body {
   transition: color 0.3s ease;
 }
 
+/* Клавиши */
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -107,24 +113,19 @@ html, body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(255,255,255,0.08);
   touch-action: manipulation;
   transform: translateZ(0);
-  transition: all 0.15s ease;
+  transition: all 0.1s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
 }
 
-/* УБИРАЕМ :active и используем ТОЛЬКО класс .pressed */
-.btn.pressed {
+/* Анимация при нажатии - ТОЛЬКО ДЛЯ ЧИСЛОВЫХ КНОПОК (как у операторов) */
+.btn:active {
   transform: scale(0.96) translateZ(0);
   box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
-  background: rgba(60, 60, 60, 0.9);
 }
 
-.btn:hover {
-  background: rgba(70, 70, 70, 0.85);
-}
-
-/* ЧИСЛОВЫЕ КНОПКИ */
+/* ЧИСЛОВЫЕ КНОПКИ - делаем как операторы */
 .btn.num {
   background: rgba(45, 45, 45, 0.85);
   font-weight: 600;
@@ -134,11 +135,11 @@ html, body {
   background: rgba(70, 70, 70, 0.85);
 }
 
-.btn.num.pressed {
+.btn.num:active {
   background: rgba(60, 60, 60, 0.9);
 }
 
-/* ОПЕРАТОРЫ И РАВНО */
+/* КНОПКИ ОПЕРАТОРОВ И РАВНО - оставляем как есть */
 .btn.op,
 .btn.right,
 .btn.equals {
@@ -153,13 +154,13 @@ html, body {
   background: #ffab4d;
 }
 
-.btn.op.pressed,
-.btn.right.pressed,
-.btn.equals.pressed {
+.btn.op:active,
+.btn.right:active,
+.btn.equals:active {
   background: #e6891a;
 }
 
-/* КРАСНЫЕ КНОПКИ */
+/* КРАСНЫЕ КНОПКИ УПРАВЛЕНИЯ */
 .btn[data-action="all-clear"],
 .btn[data-action="paren"],
 .btn[data-action="delete"],
@@ -178,19 +179,21 @@ html, body {
   background: #ff6b6b;
 }
 
-.btn[data-action="all-clear"].pressed,
-.btn[data-action="paren"].pressed,
-.btn[data-action="delete"].pressed,
-.btn[data-action="percent"].pressed,
-.btn[data-value="."].pressed {
+.btn[data-action="all-clear"]:active,
+.btn[data-action="paren"]:active,
+.btn[data-action="delete"]:active,
+.btn[data-action="percent"]:active,
+.btn[data-value="."]:active {
   background: #ff3b3b;
 }
 
+/* Состояние фокуса для доступности */
 .btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
+/* Увеличенный экран при маленьких устройствах */
 @media (max-width: 420px) {
   .calculator { 
     padding: 12px 10px; 
@@ -210,7 +213,15 @@ html, body {
   }
 }
 
-/* Светлая тема */
+/* FIX для проблемы с :active на мобильных */
+@media (hover: none) and (pointer: coarse) {
+  .btn:active {
+    transform: scale(0.96) translateZ(0);
+    transition-duration: 0s;
+  }
+}
+
+/* Поддержка светлой темы */
 @media (prefers-color-scheme: light) {
   :root {
     --bg: #f5f5f5;
@@ -228,7 +239,7 @@ html, body {
     color: var(--text);
   }
   
-  .btn.pressed {
+  .btn:active {
     background: rgba(240, 240, 240, 0.9);
   }
   
@@ -244,10 +255,11 @@ html, body {
     background: rgba(250, 250, 250, 0.85);
   }
   
-  .btn.num.pressed {
+  .btn.num:active {
     background: rgba(240, 240, 240, 0.9);
   }
   
+  /* Операторы и равно в светлой теме */
   .btn.op,
   .btn.right,
   .btn.equals {
@@ -261,12 +273,13 @@ html, body {
     background: #ffab4d;
   }
   
-  .btn.op.pressed,
-  .btn.right.pressed,
-  .btn.equals.pressed {
+  .btn.op:active,
+  .btn.right:active,
+  .btn.equals:active {
     background: #e6891a;
   }
   
+  /* Красные кнопки в светлой теме */
   .btn[data-action="all-clear"],
   .btn[data-action="paren"],
   .btn[data-action="delete"],
@@ -284,11 +297,11 @@ html, body {
     background: #ff6b6b;
   }
   
-  .btn[data-action="all-clear"].pressed,
-  .btn[data-action="paren"].pressed,
-  .btn[data-action="delete"].pressed,
-  .btn[data-action="percent"].pressed,
-  .btn[data-value="."].pressed {
+  .btn[data-action="all-clear"]:active,
+  .btn[data-action="paren"]:active,
+  .btn[data-action="delete"]:active,
+  .btn[data-action="percent"]:active,
+  .btn[data-value="."]:active {
     background: #ff3b3b;
   }
   
