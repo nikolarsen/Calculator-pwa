@@ -4,26 +4,24 @@ const keys = document.getElementById('keys');
 
 let expr = '';
 let lastResult = null;
-let history = [];
-let readyForNewInput = false; // новый ввод после =
-let replaceLastNumber = false; // следующий ввод цифры заменяет последнее число
+let readyForNewInput = false;
+let replaceLastNumber = false;
 
-// Отображение на экране
+/* Обновление экрана */
 function renderScreen() {
   screen.textContent = expr || '0';
 }
 
-// Добавление в историю
+/* Добавление записи в историю */
 function addHistoryItem(input, result) {
-  history.unshift({input, result});
   const el = document.createElement('div');
   el.className = 'line';
-  el.textContent = input + ' = ' + result;
+  el.textContent = `${input} = ${result}`;
   historyEl.prepend(el);
   while (historyEl.children.length > 20) historyEl.removeChild(historyEl.lastChild);
 }
 
-// Обработка процентов и формирование JS-выражения
+/* Подготовка выражения */
 function sanitizeForCalc(displayExpr) {
   let s = displayExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
   s = s.replace(/(\d+(?:\.\d+)?)([\+\-\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
@@ -32,35 +30,31 @@ function sanitizeForCalc(displayExpr) {
   return s;
 }
 
-// Вычисление выражения
+/* Безопасное вычисление */
 function safeEval(displayExpr) {
   const jsExpr = sanitizeForCalc(displayExpr);
   if (!jsExpr) return '0';
   try {
     const result = Function('"use strict"; return (' + jsExpr + ')')();
     if (typeof result !== 'number' || !isFinite(result)) return '0';
-    let rounded = Math.round((result + Number.EPSILON) * 1e12) / 1e12;
-    return rounded.toString();
+    return (Math.round((result + Number.EPSILON) * 1e12) / 1e12).toString();
   } catch {
     return '0';
   }
 }
 
-// Ввод символов
+/* Вставка символа */
 function insertChar(ch) {
   const last = expr.slice(-1);
-  const ops = ['+', '−', '×', '÷', '*','/'];
-  if (ops.includes(last) && ops.includes(ch)) {
-    expr = expr.slice(0, -1) + ch;
-  } else {
-    expr += ch;
-  }
+  const ops = ['+', '−', '×', '÷', '*', '/'];
+  if (ops.includes(last) && ops.includes(ch)) expr = expr.slice(0, -1) + ch;
+  else expr += ch;
   readyForNewInput = false;
   replaceLastNumber = false;
   renderScreen();
 }
 
-// Обработка =
+/* Обработка "=" */
 function handleEquals() {
   if (!expr) return;
   const res = safeEval(expr);
@@ -69,165 +63,102 @@ function handleEquals() {
   renderScreen();
   lastResult = res;
   readyForNewInput = true;
-  replaceLastNumber = false;
 }
 
-// Процент
+/* Процент */
 function handlePercent() {
-  if (expr.slice(-1) === '%') {
-    expr = expr.slice(0, -1);
-    renderScreen();
-    return;
-  }
   const last = expr.slice(-1);
-  const ops = ['+','−','×','÷','(',')'];
-  if (ops.includes(last)) return;
+  if (!expr || ['+','−','×','÷','('].includes(last)) return;
   expr += '%';
-  readyForNewInput = false;
-  replaceLastNumber = false;
   renderScreen();
 }
 
-// Скобки
+/* Скобки */
 function handleParen() {
   const open = (expr.match(/\(/g) || []).length;
   const close = (expr.match(/\)/g) || []).length;
-  if (!expr || /[+−×÷]$/.test(expr)) {
-    expr += '(';
-  } else if (open > close) {
-    expr += ')';
-  } else {
-    expr += '(';
-  }
-  readyForNewInput = false;
-  replaceLastNumber = false;
+  if (!expr || /[+−×÷]$/.test(expr)) expr += '(';
+  else if (open > close) expr += ')';
+  else expr += '(';
   renderScreen();
 }
 
-// Удаление
+/* Удаление символа */
 function handleDelete() {
   expr = expr.slice(0, -1);
-  readyForNewInput = false;
-  replaceLastNumber = false;
   renderScreen();
 }
 
-// Очистка
+/* Очистка */
 function handleAllClear(long=false) {
-  if (long) {
-    historyEl.innerHTML = '';
-    history = [];
-  }
+  if (long) historyEl.innerHTML = '';
   expr = '';
-  readyForNewInput = false;
-  replaceLastNumber = false;
   renderScreen();
 }
 
-// --- Кнопки ---
+/* Нажатие кнопок */
 keys.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-value], button[data-action]');
   if (!btn) return;
   const val = btn.dataset.value;
   const action = btn.dataset.action;
 
-  // Виброотклик на iPhone
+  // Виброотклик (работает на iPhone)
   if (navigator.vibrate) navigator.vibrate(10);
 
-  if (action === 'all-clear') { handleAllClear(false); return; }
-  if (action === 'delete') { handleDelete(); return; }
-  if (action === 'equals') { handleEquals(); return; }
-  if (action === 'percent') { handlePercent(); return; }
-  if (action === 'paren') { handleParen(); return; }
+  switch(action) {
+    case 'all-clear': return handleAllClear(false);
+    case 'delete': return handleDelete();
+    case 'equals': return handleEquals();
+    case 'percent': return handlePercent();
+    case 'paren': return handleParen();
+  }
 
   if (val) {
     if (/[0-9.]/.test(val)) {
-      if (readyForNewInput) {
-        expr = '';
-        readyForNewInput = false;
-      } else if (replaceLastNumber) {
-        expr = expr.replace(/([0-9.]+)$/, '');
-        replaceLastNumber = false;
-      }
+      if (readyForNewInput) expr = '';
+      else if (replaceLastNumber) expr = expr.replace(/([0-9.]+)$/, '');
       const parts = expr.split(/[^0-9.]/);
       const lastNum = parts[parts.length-1] || '';
       if (val === '.' && lastNum.includes('.')) return;
       expr += val;
       renderScreen();
-    } else {
-      insertChar(val);
-    }
+    } else insertChar(val);
   }
 });
 
-// Выбор из истории
+/* Выбор из истории */
 historyEl.addEventListener('click', (e)=>{
   const line = e.target.closest('.line');
   if (!line) return;
-  const text = line.textContent.split('=')[1].trim(); // берём результат
+  const text = line.textContent.split('=')[1].trim();
   const lastChar = expr.slice(-1);
   const ops = ['+','−','×','÷','(',')'];
-  if (expr && !ops.includes(lastChar)) {
+  if (expr && !ops.includes(lastChar))
     expr = expr.replace(/([0-9.]+)$/, text);
-  } else {
-    expr += text;
-  }
-  replaceLastNumber = true; // новый ввод заменит вставленное число
-  readyForNewInput = false;
+  else expr += text;
+  replaceLastNumber = true;
   renderScreen();
   if (navigator.vibrate) navigator.vibrate(10);
 });
 
-// Долгое нажатие AC для очистки истории
+/* Долгое нажатие AC для очистки истории */
 let acTimer = null;
-document.querySelector('[data-action="all-clear"]').addEventListener('touchstart', ()=> {
+const acBtn = document.querySelector('[data-action="all-clear"]');
+acBtn.addEventListener('touchstart', ()=> {
   acTimer = setTimeout(()=> handleAllClear(true), 700);
 });
-document.querySelector('[data-action="all-clear"]').addEventListener('touchend', ()=> {
-  if (acTimer) { clearTimeout(acTimer); acTimer = null; }
+acBtn.addEventListener('touchend', ()=> {
+  clearTimeout(acTimer);
 });
 
-// --- Клавиатура ---
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); handleEquals(); return; }
-  if (e.key === 'Backspace') { handleDelete(); return; }
-  if (e.key === 'Escape') { handleAllClear(false); return; }
-
-  if (/[0-9]/.test(e.key) || e.key === '.') {
-    if (readyForNewInput) { expr = ''; readyForNewInput = false; }
-    else if (replaceLastNumber) { expr = expr.replace(/([0-9.]+)$/, ''); replaceLastNumber = false; }
-    const parts = expr.split(/[^0-9.]/);
-    const lastNum = parts[parts.length-1] || '';
-    if (e.key === '.' && lastNum.includes('.')) return;
-    expr += e.key;
-    renderScreen();
-    return;
-  }
-
-  if (e.key === '+' || e.key === '-') { insertChar(e.key === '-' ? '−' : '+'); return; }
-  if (e.key === '*' || e.key === 'x') { insertChar('×'); return; }
-  if (e.key === '/') { insertChar('÷'); return; }
-
-
-
-// --- Инициализация ---
-renderScreen();
-// --- Анимация кнопок (все кнопки реагируют одинаково) ---
+/* Анимация кнопок (универсально для всех) */
 document.querySelectorAll('.btn').forEach(btn => {
-  btn.addEventListener('touchstart', () => {
-    btn.classList.add('pressed');
-    // Виброотклик (работает на iPhone)
-    if (window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(10);
-    }
-  });
-  btn.addEventListener('touchend', () => {
-    setTimeout(() => btn.classList.remove('pressed'), 150);
-  });
-  btn.addEventListener('mousedown', () => {
-    btn.classList.add('pressed');
-  });
-  btn.addEventListener('mouseup', () => {
-    setTimeout(() => btn.classList.remove('pressed'), 150);
-  });
+  btn.addEventListener('touchstart', () => btn.classList.add('pressed'));
+  btn.addEventListener('touchend', () => setTimeout(() => btn.classList.remove('pressed'), 150));
+  btn.addEventListener('mousedown', () => btn.classList.add('pressed'));
+  btn.addEventListener('mouseup', () => setTimeout(() => btn.classList.remove('pressed'), 150));
 });
+
+/* Инициализация */
+renderScreen();
