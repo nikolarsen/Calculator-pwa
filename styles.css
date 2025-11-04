@@ -1,11 +1,10 @@
 :root{
   --bg:#0f0f0f;
-  --panel:rgba(34,36,38,0.6);
-  --accent:rgba(255,154,42,0.8);
-  --red:rgba(220,60,60,0.8);
-  --op-bg:rgba(43,43,43,0.6);
+  --panel:#222426;
+  --accent:#ff9a2a;
   --text:#e9e9e9;
   --muted:#8f8f8f;
+  --op-bg:#2b2b2b;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing:antialiased;
 }
@@ -17,7 +16,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html,body{
+html, body{
   height:100%;
   margin:0;
   background:var(--bg);
@@ -33,36 +32,38 @@ html,body{
   flex-direction:column;
 }
 
-.top-container{
-  display:flex;
-  flex-direction:column;
-  flex-grow:1;         /* занимает всё доступное пространство */
-  justify-content:flex-end; /* прижимает экран и историю к клавишам */
-}
-
 .topbar{
   display:flex;
   justify-content:flex-end;
   align-items:flex-end;
-  min-height:110px;
+  min-height:150px; /* увеличено для истории */
   margin-bottom:6px;
 }
 
 .history{
   color:var(--muted);
-  font-size:18px;
-  line-height:1.3;
-  max-height:110px;
-  overflow:auto;
+  font-size:24px; /* увеличено почти до ЭВ */
+  line-height:1.2;
+  max-height:150px; /* увеличена высота */
+  overflow-y:auto;
   width:100%;
   padding-right:10px;
   text-align:right;
 }
 
+/* scrollbar для истории */
+.history::-webkit-scrollbar {
+  width:6px;
+}
+.history::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius:3px;
+}
+
 .screen{
-  font-size:40px;
+  font-size:38px; /* увеличен шрифт */
   padding:8px 12px;
-  min-height:72px;
+  min-height:80px;
   display:flex;
   align-items:center;
   justify-content:flex-end;
@@ -73,33 +74,32 @@ html,body{
 .keys{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:6px;
+  gap:8px; /* уменьшено расстояние между кнопками */
   margin-top:auto; /* прижимает клавиши к низу */
 }
 
 .btn{
-  background:rgba(255,255,255,0.05);
-  backdrop-filter: blur(8px);
-  border:1px solid rgba(255,255,255,0.1);
+  background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3));
+  border:0;
   padding:20px 12px;
   font-size:24px;
   color:var(--text);
-  border-radius:12px;
-  box-shadow:0 8px 12px rgba(0,0,0,0.6);
+  border-radius:10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 -2px rgba(0,0,0,0.25);
   touch-action: manipulation;
   transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.2s ease;
 }
 
 .btn:active{
-  transform:translateY(2px) scale(0.97);
-  box-shadow:0 4px 6px rgba(0,0,0,0.6);
-  background:rgba(255,255,255,0.1);
+  transform:translateY(2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 -1px rgba(0,0,0,0.25);
+  background:linear-gradient(145deg, rgba(0,0,0,0.3), rgba(255,255,255,0.05));
 }
 
 .btn.op{background:var(--op-bg);}
-.btn.left{background:var(--red);}
+.btn.left{background:#b23b3b; color:#fff;} /* красные AC, (), DEL */
 .btn.right{background:var(--accent);color:#111;font-weight:700;}
-.equals{background:var(--accent);color:#111;font-weight:700;border-radius:12px;}
+.equals{background:var(--accent);color:#111;font-weight:700;border-radius:10px;}
 .num{font-weight:600;}
 
 /* Column with operator style */
@@ -109,7 +109,7 @@ html,body{
 /* Responsive */
 @media (max-width:420px){
   .calculator{padding:12px;}
-  .screen{font-size:36px;}
-  .history{font-size:16px;}
+  .screen{font-size:36px; min-height:72px;}
+  .history{font-size:22px; max-height:130px;}
   .btn{padding:18px;font-size:22px;}
 }
