@@ -101,7 +101,7 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Кнопки */
+/* БАЗОВЫЕ СТИЛИ КНОПОК */
 .btn {
   background: rgba(45, 45, 45, 0.85);
   backdrop-filter: blur(6px);
@@ -121,25 +121,57 @@ html, body {
   overflow: hidden;
 }
 
-/* Анимация при нажатии */
+/* Анимация при нажатии - ДЛЯ ВСЕХ КНОПОК */
 .btn:active {
   transform: scale(0.94) translateZ(0);
   box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
   background: rgba(60, 60, 60, 0.9);
 }
 
-/* Стеклянный эффект */
+/* Стеклянный эффект при наведении - ДЛЯ ВСЕХ КНОПОК */
 .btn:hover {
   background: rgba(70, 70, 70, 0.85);
 }
 
-/* Цветовые акценты */
-.btn.op { background: rgba(50,50,50,0.85); }
-.btn.right { background: var(--accent); color: #111; font-weight: 700; }
-.equals { background: var(--accent); color: #111; font-weight: 700; }
-.num { font-weight: 600; }
+/* ЧИСЛОВЫЕ КНОПКИ */
+.btn.num {
+  background: rgba(45, 45, 45, 0.85);
+  font-weight: 600;
+}
 
-/* Красные кнопки управления */
+.btn.num:hover {
+  background: rgba(70, 70, 70, 0.85);
+}
+
+.btn.num:active {
+  background: rgba(60, 60, 60, 0.9);
+}
+
+/* КНОПКИ ОПЕРАТОРОВ И РАВНО - ИСПРАВЛЕННЫЕ СТИЛИ */
+.btn.op,
+.btn.right,
+.btn.equals {
+  background: var(--accent);
+  color: #111;
+  font-weight: 700;
+}
+
+/* Стили при наведении для операторов и равно */
+.btn.op:hover,
+.btn.right:hover,
+.btn.equals:hover {
+  background: #ffab4d;
+}
+
+/* Стили при нажатии для операторов и равно */
+.btn.op:active,
+.btn.right:active,
+.btn.equals:active {
+  background: #e6891a;
+  transform: scale(0.94) translateZ(0);
+}
+
+/* КРАСНЫЕ КНОПКИ УПРАВЛЕНИЯ */
 .btn[data-action="all-clear"],
 .btn[data-action="paren"],
 .btn[data-action="delete"],
@@ -150,10 +182,52 @@ html, body {
   font-weight: 600;
 }
 
+/* Стили при наведении для красных кнопок */
+.btn[data-action="all-clear"]:hover,
+.btn[data-action="paren"]:hover,
+.btn[data-action="delete"]:hover,
+.btn[data-action="percent"]:hover,
+.btn[data-value="."]:hover {
+  background: #ff6b6b;
+}
+
+/* Стили при нажатии для красных кнопок */
+.btn[data-action="all-clear"]:active,
+.btn[data-action="paren"]:active,
+.btn[data-action="delete"]:active,
+.btn[data-action="percent"]:active,
+.btn[data-value="."]:active {
+  background: #ff3b3b;
+  transform: scale(0.94) translateZ(0);
+}
+
 /* Состояние фокуса для доступности */
 .btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Класс для нажатого состояния (из JavaScript) */
+.btn.pressed {
+  transform: scale(0.94) translateZ(0);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
+  background: rgba(60, 60, 60, 0.9);
+}
+
+/* Особые стили для нажатых операторов и равно */
+.btn.op.pressed,
+.btn.right.pressed,
+.btn.equals.pressed {
+  background: #e6891a;
+}
+
+/* Особые стили для нажатых красных кнопок */
+.btn[data-action="all-clear"].pressed,
+.btn[data-action="paren"].pressed,
+.btn[data-action="delete"].pressed,
+.btn[data-action="percent"].pressed,
+.btn[data-value="."].pressed {
+  background: #ff3b3b;
 }
 
 /* Увеличенный экран при маленьких устройствах */
@@ -208,7 +282,8 @@ html, body {
     color: var(--text);
   }
   
-  .btn:active {
+  .btn:active,
+  .btn.pressed {
     background: rgba(240, 240, 240, 0.9);
   }
   
@@ -216,8 +291,71 @@ html, body {
     background: rgba(250, 250, 250, 0.85);
   }
   
-  .btn.op { 
-    background: rgba(245, 245, 245, 0.85); 
+  .btn.num {
+    background: rgba(255, 255, 255, 0.85);
+  }
+  
+  .btn.num:hover {
+    background: rgba(250, 250, 250, 0.85);
+  }
+  
+  .btn.num:active,
+  .btn.num.pressed {
+    background: rgba(240, 240, 240, 0.9);
+  }
+  
+  /* Операторы и равно в светлой теме */
+  .btn.op,
+  .btn.right,
+  .btn.equals {
+    background: var(--accent);
+    color: #111;
+  }
+  
+  .btn.op:hover,
+  .btn.right:hover,
+  .btn.equals:hover {
+    background: #ffab4d;
+  }
+  
+  .btn.op:active,
+  .btn.right:active,
+  .btn.equals:active,
+  .btn.op.pressed,
+  .btn.right.pressed,
+  .btn.equals.pressed {
+    background: #e6891a;
+  }
+  
+  /* Красные кнопки в светлой теме */
+  .btn[data-action="all-clear"],
+  .btn[data-action="paren"],
+  .btn[data-action="delete"],
+  .btn[data-action="percent"],
+  .btn[data-value="."] {
+    background: var(--danger);
+    color: #fff;
+  }
+  
+  .btn[data-action="all-clear"]:hover,
+  .btn[data-action="paren"]:hover,
+  .btn[data-action="delete"]:hover,
+  .btn[data-action="percent"]:hover,
+  .btn[data-value="."]:hover {
+    background: #ff6b6b;
+  }
+  
+  .btn[data-action="all-clear"]:active,
+  .btn[data-action="paren"]:active,
+  .btn[data-action="delete"]:active,
+  .btn[data-action="percent"]:active,
+  .btn[data-value="."]:active,
+  .btn[data-action="all-clear"].pressed,
+  .btn[data-action="paren"].pressed,
+  .btn[data-action="delete"].pressed,
+  .btn[data-action="percent"].pressed,
+  .btn[data-value="."].pressed {
+    background: #ff3b3b;
   }
   
   .history {
@@ -229,5 +367,9 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .btn {
     transition: none;
+  }
+  
+  .btn:active {
+    transform: none;
   }
 }
