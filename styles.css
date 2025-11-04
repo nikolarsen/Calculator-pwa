@@ -113,19 +113,17 @@ html, body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(255,255,255,0.08);
   touch-action: manipulation;
   transform: translateZ(0);
-  transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 0.08s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.15s ease;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
 }
 
-/* Анимация при нажатии - ТОЛЬКО :active */
-.btn:active {
+/* Анимация при нажатии - УБРАТЬ :active и использовать класс */
+.btn.pressed {
   transform: scale(0.94) translateZ(0);
   box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
-  background: rgba(60, 60, 60, 0.9);
+  background: rgba(60, 60, 60, 0.9) !important;
 }
 
 /* Стеклянный эффект при наведении */
@@ -143,10 +141,6 @@ html, body {
   background: rgba(70, 70, 70, 0.85);
 }
 
-.btn.num:active {
-  background: rgba(60, 60, 60, 0.9);
-}
-
 /* КНОПКИ ОПЕРАТОРОВ И РАВНО */
 .btn.op,
 .btn.right,
@@ -161,14 +155,6 @@ html, body {
 .btn.right:hover,
 .btn.equals:hover {
   background: #ffab4d;
-}
-
-/* Стили при нажатии для операторов и равно */
-.btn.op:active,
-.btn.right:active,
-.btn.equals:active {
-  background: #e6891a;
-  transform: scale(0.94) translateZ(0);
 }
 
 /* КРАСНЫЕ КНОПКИ УПРАВЛЕНИЯ */
@@ -191,14 +177,20 @@ html, body {
   background: #ff6b6b;
 }
 
-/* Стили при нажатии для красных кнопок */
-.btn[data-action="all-clear"]:active,
-.btn[data-action="paren"]:active,
-.btn[data-action="delete"]:active,
-.btn[data-action="percent"]:active,
-.btn[data-value="."]:active {
-  background: #ff3b3b;
-  transform: scale(0.94) translateZ(0);
+/* Особые стили для нажатых операторов и равно */
+.btn.op.pressed,
+.btn.right.pressed,
+.btn.equals.pressed {
+  background: #e6891a !important;
+}
+
+/* Особые стили для нажатых красных кнопок */
+.btn[data-action="all-clear"].pressed,
+.btn[data-action="paren"].pressed,
+.btn[data-action="delete"].pressed,
+.btn[data-action="percent"].pressed,
+.btn[data-value="."].pressed {
+  background: #ff3b3b !important;
 }
 
 /* Состояние фокуса для доступности */
@@ -259,8 +251,8 @@ html, body {
     color: var(--text);
   }
   
-  .btn:active {
-    background: rgba(240, 240, 240, 0.9);
+  .btn.pressed {
+    background: rgba(240, 240, 240, 0.9) !important;
   }
   
   .btn:hover {
@@ -273,10 +265,6 @@ html, body {
   
   .btn.num:hover {
     background: rgba(250, 250, 250, 0.85);
-  }
-  
-  .btn.num:active {
-    background: rgba(240, 240, 240, 0.9);
   }
   
   /* Операторы и равно в светлой теме */
@@ -293,10 +281,10 @@ html, body {
     background: #ffab4d;
   }
   
-  .btn.op:active,
-  .btn.right:active,
-  .btn.equals:active {
-    background: #e6891a;
+  .btn.op.pressed,
+  .btn.right.pressed,
+  .btn.equals.pressed {
+    background: #e6891a !important;
   }
   
   /* Красные кнопки в светлой теме */
@@ -317,12 +305,12 @@ html, body {
     background: #ff6b6b;
   }
   
-  .btn[data-action="all-clear"]:active,
-  .btn[data-action="paren"]:active,
-  .btn[data-action="delete"]:active,
-  .btn[data-action="percent"]:active,
-  .btn[data-value="."]:active {
-    background: #ff3b3b;
+  .btn[data-action="all-clear"].pressed,
+  .btn[data-action="paren"].pressed,
+  .btn[data-action="delete"].pressed,
+  .btn[data-action="percent"].pressed,
+  .btn[data-value="."].pressed {
+    background: #ff3b3b !important;
   }
   
   .history {
@@ -336,7 +324,7 @@ html, body {
     transition: none;
   }
   
-  .btn:active {
+  .btn.pressed {
     transform: none;
   }
 }
