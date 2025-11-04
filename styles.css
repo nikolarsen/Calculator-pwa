@@ -115,20 +115,20 @@ html, body {
   transform: translateZ(0);
   transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1), 
               box-shadow 0.08s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.2s ease;
+              background 0.15s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
 }
 
-/* Анимация при нажатии - ДЛЯ ВСЕХ КНОПОК */
+/* Анимация при нажатии - ТОЛЬКО :active */
 .btn:active {
   transform: scale(0.94) translateZ(0);
   box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
   background: rgba(60, 60, 60, 0.9);
 }
 
-/* Стеклянный эффект при наведении - ДЛЯ ВСЕХ КНОПОК */
+/* Стеклянный эффект при наведении */
 .btn:hover {
   background: rgba(70, 70, 70, 0.85);
 }
@@ -147,7 +147,7 @@ html, body {
   background: rgba(60, 60, 60, 0.9);
 }
 
-/* КНОПКИ ОПЕРАТОРОВ И РАВНО - ИСПРАВЛЕННЫЕ СТИЛИ */
+/* КНОПКИ ОПЕРАТОРОВ И РАВНО */
 .btn.op,
 .btn.right,
 .btn.equals {
@@ -207,29 +207,6 @@ html, body {
   outline-offset: 2px;
 }
 
-/* Класс для нажатого состояния (из JavaScript) */
-.btn.pressed {
-  transform: scale(0.94) translateZ(0);
-  box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
-  background: rgba(60, 60, 60, 0.9);
-}
-
-/* Особые стили для нажатых операторов и равно */
-.btn.op.pressed,
-.btn.right.pressed,
-.btn.equals.pressed {
-  background: #e6891a;
-}
-
-/* Особые стили для нажатых красных кнопок */
-.btn[data-action="all-clear"].pressed,
-.btn[data-action="paren"].pressed,
-.btn[data-action="delete"].pressed,
-.btn[data-action="percent"].pressed,
-.btn[data-value="."].pressed {
-  background: #ff3b3b;
-}
-
 /* Увеличенный экран при маленьких устройствах */
 @media (max-width: 420px) {
   .calculator { 
@@ -282,8 +259,7 @@ html, body {
     color: var(--text);
   }
   
-  .btn:active,
-  .btn.pressed {
+  .btn:active {
     background: rgba(240, 240, 240, 0.9);
   }
   
@@ -299,8 +275,7 @@ html, body {
     background: rgba(250, 250, 250, 0.85);
   }
   
-  .btn.num:active,
-  .btn.num.pressed {
+  .btn.num:active {
     background: rgba(240, 240, 240, 0.9);
   }
   
@@ -320,10 +295,7 @@ html, body {
   
   .btn.op:active,
   .btn.right:active,
-  .btn.equals:active,
-  .btn.op.pressed,
-  .btn.right.pressed,
-  .btn.equals.pressed {
+  .btn.equals:active {
     background: #e6891a;
   }
   
@@ -349,12 +321,7 @@ html, body {
   .btn[data-action="paren"]:active,
   .btn[data-action="delete"]:active,
   .btn[data-action="percent"]:active,
-  .btn[data-value="."]:active,
-  .btn[data-action="all-clear"].pressed,
-  .btn[data-action="paren"].pressed,
-  .btn[data-action="delete"].pressed,
-  .btn[data-action="percent"].pressed,
-  .btn[data-value="."].pressed {
+  .btn[data-value="."]:active {
     background: #ff3b3b;
   }
   
