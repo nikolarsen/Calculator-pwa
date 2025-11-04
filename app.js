@@ -86,8 +86,7 @@ keys.addEventListener('touchend', e=>{
   btn.classList.remove('active');
 });
 
-// Клик по истории
-historyEl.addEventListener('click', e => {
+// Клик по историиhistoryEl.addEventListener('click', e => {
   const line = e.target.closest('.line');
   if(!line) return;
 
@@ -96,22 +95,22 @@ historyEl.addEventListener('click', e => {
 
   let val = parts[1].replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−');
 
-  const lastChar = expr.slice(-1);
   const operators = ['+','−','×','÷'];
+  const lastChar = expr.slice(-1);
 
   if(!expr || operators.includes(lastChar)){
     // Если пусто или последний символ оператор — просто добавляем число
     expr += val;
   } else {
-    // Последний символ не оператор — заменяем текущее число
-    // Разделяем выражение на части по операторам
-    const match = expr.match(/(.+?)([+\−×÷])?([0-9.]*)$/);
+    // Последний символ не оператор — заменяем **текущее число** на val
+    // Разделяем на части по последнему оператору
+    const match = expr.match(/^(.*?)([+\−×÷]?)([0-9.]*)$/);
     if(match){
       // match[1] = всё до последнего числа
       // match[2] = последний оператор (если есть)
       expr = match[1] + (match[2] || '') + val;
     } else {
-      expr = val; // на случай, если не удалось распознать
+      expr = val;
     }
   }
 
