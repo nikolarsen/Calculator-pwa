@@ -101,7 +101,7 @@ html, body {
   flex-shrink: 0;
 }
 
-/* БАЗОВЫЕ СТИЛИ КНОПОК */
+/* БАЗОВЫЕ СТИЛИ КНОПОК - ОДИНАКОВЫЕ ДЛЯ ВСЕХ */
 .btn {
   background: rgba(45, 45, 45, 0.85);
   backdrop-filter: blur(6px);
@@ -117,13 +117,14 @@ html, body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  font-weight: 600;
 }
 
-/* Анимация при нажатии - FIX для мобильных */
+/* Анимация при нажатии - ОДИНАКОВАЯ ДЛЯ ВСЕХ КНОПОК */
 .btn:active {
   transform: scale(0.96) translateZ(0);
   box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
-  background: rgba(60, 60, 60, 0.9);
+  background: rgba(60, 60, 60, 0.9) !important;
 }
 
 /* Стеклянный эффект при наведении */
@@ -131,21 +132,7 @@ html, body {
   background: rgba(70, 70, 70, 0.85);
 }
 
-/* ЧИСЛОВЫЕ КНОПКИ */
-.btn.num {
-  background: rgba(45, 45, 45, 0.85);
-  font-weight: 600;
-}
-
-.btn.num:hover {
-  background: rgba(70, 70, 70, 0.85);
-}
-
-.btn.num:active {
-  background: rgba(60, 60, 60, 0.9);
-}
-
-/* КНОПКИ ОПЕРАТОРОВ И РАВНО */
+/* КНОПКИ ОПЕРАТОРОВ И РАВНО - ТОЛЬКО ЦВЕТ */
 .btn.op,
 .btn.right,
 .btn.equals {
@@ -154,14 +141,19 @@ html, body {
   font-weight: 700;
 }
 
+.btn.op:hover,
+.btn.right:hover,
+.btn.equals:hover {
+  background: #ffab4d;
+}
+
 .btn.op:active,
 .btn.right:active,
 .btn.equals:active {
-  background: #e6891a;
-  transform: scale(0.96) translateZ(0);
+  background: #e6891a !important;
 }
 
-/* КРАСНЫЕ КНОПКИ УПРАВЛЕНИЯ */
+/* КРАСНЫЕ КНОПКИ УПРАВЛЕНИЯ - ТОЛЬКО ЦВЕТ */
 .btn[data-action="all-clear"],
 .btn[data-action="paren"],
 .btn[data-action="delete"],
@@ -172,13 +164,20 @@ html, body {
   font-weight: 600;
 }
 
+.btn[data-action="all-clear"]:hover,
+.btn[data-action="paren"]:hover,
+.btn[data-action="delete"]:hover,
+.btn[data-action="percent"]:hover,
+.btn[data-value="."]:hover {
+  background: #ff6b6b;
+}
+
 .btn[data-action="all-clear"]:active,
 .btn[data-action="paren"]:active,
 .btn[data-action="delete"]:active,
 .btn[data-action="percent"]:active,
 .btn[data-value="."]:active {
-  background: #ff3b3b;
-  transform: scale(0.96) translateZ(0);
+  background: #ff3b3b !important;
 }
 
 /* Состояние фокуса для доступности */
@@ -211,6 +210,83 @@ html, body {
 @media (hover: none) and (pointer: coarse) {
   .btn:active {
     transform: scale(0.96) translateZ(0);
-    transition-duration: 0s; /* Мгновенный возврат на мобильных */
+    transition-duration: 0s;
+  }
+}
+
+/* Поддержка светлой темы */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f5f5;
+    --panel: #ffffff;
+    --accent: #ff9a2a;
+    --text: #333333;
+    --muted: #666666;
+    --danger: #ff4e4e;
+  }
+  
+  .btn {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 -2px rgba(0,0,0,0.05);
+    color: var(--text);
+  }
+  
+  .btn:active {
+    background: rgba(240, 240, 240, 0.9) !important;
+  }
+  
+  .btn:hover {
+    background: rgba(250, 250, 250, 0.85);
+  }
+  
+  /* Операторы и равно в светлой теме */
+  .btn.op,
+  .btn.right,
+  .btn.equals {
+    background: var(--accent);
+    color: #111;
+  }
+  
+  .btn.op:hover,
+  .btn.right:hover,
+  .btn.equals:hover {
+    background: #ffab4d;
+  }
+  
+  .btn.op:active,
+  .btn.right:active,
+  .btn.equals:active {
+    background: #e6891a !important;
+  }
+  
+  /* Красные кнопки в светлой теме */
+  .btn[data-action="all-clear"],
+  .btn[data-action="paren"],
+  .btn[data-action="delete"],
+  .btn[data-action="percent"],
+  .btn[data-value="."] {
+    background: var(--danger);
+    color: #fff;
+  }
+  
+  .btn[data-action="all-clear"]:hover,
+  .btn[data-action="paren"]:hover,
+  .btn[data-action="delete"]:hover,
+  .btn[data-action="percent"]:hover,
+  .btn[data-value="."]:hover {
+    background: #ff6b6b;
+  }
+  
+  .btn[data-action="all-clear"]:active,
+  .btn[data-action="paren"]:active,
+  .btn[data-action="delete"]:active,
+  .btn[data-action="percent"]:active,
+  .btn[data-value="."]:active {
+    background: #ff3b3b !important;
+  }
+  
+  .history {
+    color: var(--muted);
   }
 }
