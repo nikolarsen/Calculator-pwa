@@ -830,36 +830,75 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* Проверка обновлений */
+/* Проверка обновлений - ИСПРАВЛЕННАЯ */
+let updateCheckInProgress = false;
+
 function checkForUpdates() {
+  if (updateCheckInProgress) return;
+  
+  updateCheckInProgress = true;
+  
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready.then(registration => {
-      registration.active.postMessage({ type: 'CHECK_UPDATES' });
+      if (registration.active) {
+        registration.active.postMessage({ type: 'CHECK_UPDATES' });
+      }
+    }).catch(error => {
+      console.log('Update check failed:', error);
+    }).finally(() => {
+      updateCheckInProgress = false;
     });
+  } else {
+    updateCheckInProgress = false;
   }
 }
 
-/* Уведомление об обновлении */
+/* Уведомление об обновлении - ИСПРАВЛЕННОЕ */
+let updateNotificationShown = false;
+
 function showUpdateNotification() {
-  if (confirm('Доступна новая версия калькулятора. Обновить?')) {
-    window.location.reload();
-  }
+  // Защита от множественных уведомлений
+  if (updateNotificationShown) return;
+  updateNotificationShown = true;
+  
+  // Используем setTimeout чтобы дать время на рендеринг
+  setTimeout(() => {
+    const shouldUpdate = confirm('Доступна новая версия калькулятора. Обновить?');
+    
+    if (shouldUpdate) {
+      // Принудительное обновление
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          return registration.unregister();
+        }).then(() => {
+          window.location.reload();
+        });
+      } else {
+        window.location.reload();
+      }
+    } else {
+      // Сбрасываем флаг через 5 секунд
+      setTimeout(() => {
+        updateNotificationShown = false;
+      }, 5000);
+    }
+  }, 100);
 }
 
-/* Слушаем сообщения от Service Worker */
+/* Слушаем сообщения от Service Worker - ИСПРАВЛЕННОЕ */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', event => {
-    if (event.data.type === 'UPDATE_AVAILABLE') {
+    if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
+      console.log('Update available received');
       showUpdateNotification();
     }
   });
 }
 
-/* Инициализация */
-renderScreen();
-loadHistory();
-loadSettings();
+/* Проверяем обновления при загрузке с задержкой */
+setTimeout(() => {
+  checkForUpdates();
+}, 3000); // Ждем 3 секунды после загрузки
 
-/* Проверяем обновления при загрузке и раз в день */
-checkForUpdates();
-setInterval(checkForUpdates, 24 * 60 * 60 * 1000);
+/* И отключаем автоматическую проверку раз в день */
+// setInterval(checkForUpdates, 24 * 60 * 60 * 1000); // ЗАКОММЕНТИРОВАТЬ
