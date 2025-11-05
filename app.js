@@ -8,6 +8,35 @@ let replaceLastNumber = false;
 let calculationInProgress = false;
 let errorState = false;
 
+/* СОХРАНЕНИЕ И ЗАГРУЗКА ИСТОРИИ */
+function saveHistory() {
+  const historyItems = [];
+  historyEl.querySelectorAll('.line').forEach(line => {
+    historyItems.push(line.textContent);
+  });
+  localStorage.setItem('calcHistory', JSON.stringify(historyItems));
+}
+
+function loadHistory() {
+  const saved = localStorage.getItem('calcHistory');
+  if (saved) {
+    try {
+      const historyItems = JSON.parse(saved);
+      historyItems.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'line';
+        el.textContent = item;
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('aria-label', `Вычисление: ${item}. Нажмите чтобы использовать результат`);
+        historyEl.appendChild(el);
+      });
+    } catch (error) {
+      console.error('Ошибка загрузки истории:', error);
+    }
+  }
+}
+
 /* Отображение с доступностью */
 function renderScreen() {
   const displayValue = expr || '0';
@@ -39,9 +68,12 @@ function addHistoryItem(input, result) {
   historyEl.prepend(el);
 
   // Ограничение истории
-  while (historyEl.children.length > 30) {
+  while (historyEl.children.length > 50) {
     historyEl.removeChild(historyEl.lastChild);
   }
+  
+  // Сохраняем историю после добавления
+  saveHistory();
 }
 
 /* Проверка синтаксиса */
@@ -299,6 +331,7 @@ function handleDelete() {
 function handleAllClear(longPress = false) {
   if (longPress) {
     historyEl.innerHTML = '';
+    localStorage.removeItem('calcHistory'); // Очищаем сохраненную историю
   }
   expr = '';
   readyForNewInput = false;
@@ -437,3 +470,4 @@ document.addEventListener('keydown', (e) => {
 
 /* Инициализация */
 renderScreen();
+loadHistory(); // Загружаем историю при запуске
