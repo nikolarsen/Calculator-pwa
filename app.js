@@ -296,7 +296,7 @@ function addHistoryItem(input, result) {
   saveHistory();
 }
 
-/* Проверка синтаксиса - ПОЛНАЯ ЗАЩИТА */
+/* Проверка синтаксиса - ПРОФЕССИОНАЛЬНАЯ ЗАЩИТА */
 function validateExpression(displayExpr) {
   if (!displayExpr) return false;
   
@@ -305,15 +305,18 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // Проверка на деление на ноль (включая 0.0, 0.00 и т.д.)
-  if (displayExpr.includes('÷0') && !displayExpr.match(/÷0\.\d/)) {
-    const parts = displayExpr.split('÷0');
-    if (parts.length > 1) {
-      const afterZero = parts[1];
-      if (!afterZero || afterZero.startsWith(')') || /[+−×÷]/.test(afterZero[0])) {
-        return false;
+  // Строгая проверка на деление на ноль
+  if (displayExpr.match(/÷\s*-?\s*0/)) {
+    const zeroDivisionMatches = displayExpr.match(/÷\s*(-?\s*0[^.]?)/g);
+    if (zeroDivisionMatches) {
+      for (const match of zeroDivisionMatches) {
+        const afterZero = match.replace(/÷\s*(-?\s*0)/, '');
+        if (afterZero && !afterZero.startsWith('.') && !/[)+×÷]/.test(afterZero[0])) {
+          return false;
+        }
       }
     }
+    return false;
   }
   
   // Проверка на двойные операторы в конце
@@ -367,11 +370,6 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // Запрет деления на ноль в любом виде
-  if (displayExpr.includes('÷0') || displayExpr.includes('÷-0')) {
-    return false;
-  }
-  
   // Запрет бессмысленных выражений с множественными нулями
   if (/[×÷]-?0[×÷]-?0/.test(displayExpr)) {
     return false;
@@ -380,7 +378,7 @@ function validateExpression(displayExpr) {
   return true;
 }
 
-/* Подготовка выражения - ИСПРАВЛЕННЫЕ ПРОЦЕНТЫ */
+/* Подготовка выражения - ПРОФЕССИОНАЛЬНЫЕ ПРОЦЕНТЫ */
 function sanitizeForCalc(displayExpr) {
   if (!displayExpr) return '';
   
@@ -390,7 +388,7 @@ function sanitizeForCalc(displayExpr) {
     .replace(/−/g, '-')
     .replace(/\s/g, '');
 
-  // ИСПРАВЛЕННАЯ ЛОГИКА ПРОЦЕНТОВ
+  // ПРОФЕССИОНАЛЬНАЯ ЛОГИКА ПРОЦЕНТОВ
   // Для + и -: процент от предыдущего числа
   s = s.replace(/(\d+(?:\.\d+)?)([\+\-])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
   // Для × и ÷: процент как обычное число
@@ -434,7 +432,7 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа с ПОЛНОЙ ПРОВЕРКОЙ */
+/* Вставка символа с ПРОФЕССИОНАЛЬНОЙ ПРОВЕРКОЙ */
 function insertChar(ch) {
   if (errorState) {
     hideError();
@@ -457,7 +455,7 @@ function insertChar(ch) {
   const potentialExpr = expr + ch;
   
   // Запрет деления на ноль при вводе
-  if (potentialExpr.includes('÷0') && !potentialExpr.includes('÷0.')) {
+  if (potentialExpr.match(/÷\s*-?\s*0/) && !potentialExpr.match(/÷\s*-?\s*0\./)) {
     return;
   }
   
@@ -507,7 +505,7 @@ function insertChar(ch) {
   renderScreen();
 }
 
-/* Обработка чисел с проверками - ИСПРАВЛЕННАЯ */
+/* Обработка чисел с ПРОФЕССИОНАЛЬНОЙ АВТОТОЧКОЙ */
 function insertNumber(val) {
   if (errorState) {
     hideError();
@@ -525,8 +523,18 @@ function insertNumber(val) {
   const parts = expr.split(/[^0-9.]/);
   const lastNum = parts[parts.length - 1] || '';
   
+  // Запрет множественных точек
   if (val === '.' && lastNum.includes('.')) return;
   
+  // ПРОФЕССИОНАЛЬНАЯ АВТОТОЧКА ПОСЛЕ НУЛЯ
+  if (val === '0' && lastNum === '0') {
+    // Если уже есть один ноль и вводим еще ноль - добавляем точку
+    expr += '.';
+    renderScreen();
+    return;
+  }
+  
+  // Автодобавление 0 перед точкой если нужно
   if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
     expr += '0.';
   } else {
@@ -629,7 +637,7 @@ function handleDelete() {
   }
 }
 
-/* Очистка - ИСПРАВЛЕННАЯ С ВИЗУАЛЬНОЙ ОБРАТНОЙ СВЯЗЬЮ */
+/* Очистка - ПРОФЕССИОНАЛЬНАЯ С ВИЗУАЛЬНОЙ ОБРАТНОЙ СВЯЗЬЮ */
 function handleAllClear(longPress = false) {
   if (longPress) {
     // Визуальная обратная связь при очистке истории
