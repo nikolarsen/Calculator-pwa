@@ -342,7 +342,15 @@ function validateExpression(displayExpr) {
   if (/[+−×÷]=?$/.test(displayExpr)) {
     return false;
   }
-  
+  // Запрет конструкций типа /-6/-9 (деление-минус-число-деление-минус-число)
+if (/[×÷]-?\d+[×÷]/.test(displayExpr)) {
+  return false;
+}
+
+// Или более строгая проверка - запрет любых двух × или ÷ в одном выражении с минусом между ними
+if (/[×÷]-[×÷]/.test(displayExpr)) {
+  return false;
+}
   // Проверка на пустые скобки
   if (displayExpr.includes('()')) {
     return false;
