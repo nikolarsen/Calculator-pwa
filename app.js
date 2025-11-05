@@ -318,7 +318,7 @@ function addHistoryItem(input, result) {
   saveHistory();
 }
 
-/* Проверка синтаксиса - ИСПРАВЛЕННАЯ */
+/* Проверка синтаксиса - УЛУЧШЕННАЯ */
 function validateExpression(displayExpr) {
   if (!displayExpr) return false;
   
@@ -348,7 +348,7 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // НОВАЯ ПРОВЕРКА: После ( нельзя ставить × или ÷
+  // После ( нельзя ставить × или ÷
   if (displayExpr.includes('(×') || displayExpr.includes('(÷')) {
     return false;
   }
@@ -357,6 +357,25 @@ function validateExpression(displayExpr) {
   const open = (displayExpr.match(/\(/g) || []).length;
   const close = (displayExpr.match(/\)/g) || []).length;
   if (open !== close) {
+    return false;
+  }
+  
+  // НОВЫЕ ПРОВЕРКИ: Запрет невалидных комбинаций операторов
+  if (/([+×÷])\1/.test(displayExpr)) {
+    return false; // Запрещаем ++, ××, ÷÷
+  }
+  
+  if (/[×÷][+×÷]/.test(displayExpr)) {
+    return false; // Запрещаем ×+, ÷+, ××, ÷÷, ×÷, ÷×
+  }
+  
+  // Запрет тройных операторов и сложных невалидных комбинаций
+  if (/[+−×÷]{3,}/.test(displayExpr)) {
+    return false; // Запрещаем +++, ---, +-+ и т.д.
+  }
+  
+  // Запрет операторов в конце (кроме унарного минуса)
+  if (/[+×÷]$/.test(displayExpr)) {
     return false;
   }
   
@@ -414,7 +433,7 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа с проверками - ИСПРАВЛЕННАЯ */
+/* Вставка символа с проверками - УЛУЧШЕННАЯ */
 function insertChar(ch) {
   if (errorState) {
     hideError();
@@ -428,14 +447,23 @@ function insertChar(ch) {
     return;
   }
   
-  // НОВАЯ ПРОВЕРКА: После ( нельзя ставить × или ÷
+  // После ( нельзя ставить × или ÷
   if (lastChar === '(' && (ch === '×' || ch === '÷')) {
     return;
   }
   
-  // Запрет двойных операторов
+  // Обработка операторов с разрешением унарных минусов
   if (ops.includes(lastChar) && ops.includes(ch)) {
-    expr = expr.slice(0, -1) + ch;
+    // Разрешаем только валидные комбинации с унарными минусами
+    const validCombinations = ['+−', '−+', '×−', '÷−', '−−'];
+    const currentCombination = lastChar + ch;
+    
+    if (validCombinations.includes(currentCombination)) {
+      expr += ch;
+    } else {
+      // Для невалидных комбинаций - заменяем последний оператор
+      expr = expr.slice(0, -1) + ch;
+    }
   } 
   // Добавление оператора после результата
   else if (readyForNewInput && ops.includes(ch)) {
