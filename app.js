@@ -431,20 +431,19 @@ function safeEval(displayExpr) {
     return null;
   }
 }
-
 /* Вставка символа с ПРОФЕССИОНАЛЬНОЙ ПРОВЕРКОЙ */
 function insertChar(ch) {
   if (errorState) {
     hideError();
   }
   
-  const lastChar = expr.slice(-1);
-  const ops = ['+', '−', '×', '÷'];
-  
-  // Запрет начала с × или ÷
+  // СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с × или ÷
   if (!expr && (ch === '×' || ch === '÷')) {
     return;
   }
+  
+  const lastChar = expr.slice(-1);
+  const ops = ['+', '−', '×', '÷'];
   
   // После ( нельзя ставить × или ÷
   if (lastChar === '(' && (ch === '×' || ch === '÷')) {
