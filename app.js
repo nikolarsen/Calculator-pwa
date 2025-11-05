@@ -32,27 +32,23 @@ let errorState = false;
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem('calcSettings')) || {};
   
-  // Применяем тему
   if (settings.theme) {
     document.body.className = `theme-${settings.theme}`;
     themeSelect.value = settings.theme;
   }
   
-  // Применяем размер шрифта экрана
   if (settings.screenFontSize) {
     screen.style.fontSize = `${settings.screenFontSize}px`;
     screenFontSize.value = settings.screenFontSize;
     screenSizeValue.textContent = `${settings.screenFontSize}px`;
   }
   
-  // Применяем размер шрифта истории
   if (settings.historyFontSize) {
     historyEl.style.fontSize = `${settings.historyFontSize}px`;
     historyFontSize.value = settings.historyFontSize;
     historySizeValue.textContent = `${settings.historyFontSize}px`;
   }
   
-  // Новые настройки
   if (settings.buttonShape) {
     buttonShape.value = settings.buttonShape;
     applyButtonShape(settings.buttonShape);
@@ -95,18 +91,14 @@ function saveSettingsToStorage() {
 }
 
 function applySettings() {
-  // Тема
   document.body.className = `theme-${themeSelect.value}`;
   
-  // Размер шрифта экрана
   screen.style.fontSize = `${screenFontSize.value}px`;
   screenSizeValue.textContent = `${screenFontSize.value}px`;
   
-  // Размер шрифта истории
   historyEl.style.fontSize = `${historyFontSize.value}px`;
   historySizeValue.textContent = `${historyFontSize.value}px`;
   
-  // Новые настройки
   applyButtonShape(buttonShape.value);
   applyButtonSize(buttonSize.value);
   applyButtonOpacity(buttonOpacity.value);
@@ -126,7 +118,6 @@ function resetSettingsToDefault() {
   localStorage.removeItem('calcSettings');
 }
 
-// Функции для применения настроек
 function applyButtonShape(shape) {
   const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
   buttons.forEach(btn => {
@@ -150,7 +141,6 @@ function applyButtonOpacity(opacity) {
   });
 }
 
-// Обработчики событий для настроек
 screenFontSize.addEventListener('input', function() {
   screenSizeValue.textContent = `${this.value}px`;
 });
@@ -217,7 +207,6 @@ function loadHistory() {
 function formatDisplayValue(value) {
   if (!value || value === '0') return '0';
   
-  // Если это не число (выражение), не форматируем
   if (/[+−×÷()%]/.test(value)) {
     return value;
   }
@@ -229,31 +218,25 @@ function formatDisplayValue(value) {
     const absNum = Math.abs(num);
     const strNum = value.toString();
     
-    // Если число слишком длинное
     if (strNum.length > 12) {
-      // Очень большие числа
       if (absNum >= 1e12) {
         return num.toExponential(6).replace('e', 'E');
       }
       
-      // Очень маленькие числа
       if (absNum > 0 && absNum < 1e-6) {
         return num.toExponential(6).replace('e', 'E');
       }
       
-      // Числа с длинной дробной частью
       if (strNum.includes('.')) {
         const [integer, decimal] = strNum.split('.');
         if (integer.length > 8) {
           return num.toExponential(6).replace('e', 'E');
         }
-        // Ограничиваем дробную часть
         if (decimal.length > 8) {
           return parseFloat(num.toFixed(8)).toString();
         }
       }
       
-      // Обычные длинные числа - округляем
       return parseFloat(num.toFixed(10)).toString();
     }
     
@@ -267,13 +250,10 @@ function formatDisplayValue(value) {
 function renderScreen() {
   let displayValue = expr || '0';
   
-  // Форматируем значение для отображения
   displayValue = formatDisplayValue(displayValue);
   
-  // Убираем предыдущие классы размера
   screen.className = 'screen';
   
-  // Динамически меняем размер шрифта в зависимости от длины
   if (displayValue.length > 20) {
     screen.classList.add('extremely-long-number');
   } else if (displayValue.length > 15) {
@@ -309,16 +289,14 @@ function addHistoryItem(input, result) {
   
   historyEl.prepend(el);
 
-  // Ограничение истории
   while (historyEl.children.length > 50) {
     historyEl.removeChild(historyEl.lastChild);
   }
   
-  // Сохраняем историю после добавления
   saveHistory();
 }
 
-/* Проверка синтаксиса - УЛУЧШЕННАЯ */
+/* Проверка синтаксиса - ПОЛНАЯ ЗАЩИТА */
 function validateExpression(displayExpr) {
   if (!displayExpr) return false;
   
@@ -342,15 +320,7 @@ function validateExpression(displayExpr) {
   if (/[+−×÷]=?$/.test(displayExpr)) {
     return false;
   }
-  // Запрет конструкций типа /-6/-9 (деление-минус-число-деление-минус-число)
-if (/[×÷]-?\d+[×÷]/.test(displayExpr)) {
-  return false;
-}
-
-// Или более строгая проверка - запрет любых двух × или ÷ в одном выражении с минусом между ними
-if (/[×÷]-[×÷]/.test(displayExpr)) {
-  return false;
-}
+  
   // Проверка на пустые скобки
   if (displayExpr.includes('()')) {
     return false;
@@ -367,36 +337,43 @@ if (/[×÷]-[×÷]/.test(displayExpr)) {
   if (open !== close) {
     return false;
   }
-  // Запрет деления на ноль в любом виде
-if (displayExpr.includes('÷0') || displayExpr.includes('÷-0')) {
-  return false;
-}
-
-// Запрет бессмысленных выражений с множественными нулями и операторами
-if (/[×÷]-?0[×÷]-?0/.test(displayExpr)) {
-  return false;
-}
-
-// Запрет выражений с тремя и более нулями подряд с операторами
-if (/([×÷]-?0){3,}/.test(displayExpr)) {
-  return false;
-}
-  // НОВЫЕ ПРОВЕРКИ: Запрет невалидных комбинаций операторов
+  
+  // Запрет невалидных комбинаций операторов
   if (/([+×÷])\1/.test(displayExpr)) {
-    return false; // Запрещаем ++, ××, ÷÷
+    return false;
   }
   
   if (/[×÷][+×÷]/.test(displayExpr)) {
-    return false; // Запрещаем ×+, ÷+, ××, ÷÷, ×÷, ÷×
+    return false;
   }
   
-  // Запрет тройных операторов и сложных невалидных комбинаций
+  // Запрет тройных операторов
   if (/[+−×÷]{3,}/.test(displayExpr)) {
-    return false; // Запрещаем +++, ---, +-+ и т.д.
+    return false;
   }
   
-  // Запрет операторов в конце (кроме унарного минуса)
+  // Запрет операторов в конце
   if (/[+×÷]$/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Запрет конструкций типа /-6/-9
+  if (/[×÷]-?\d+[×÷]/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Запрет двух операторов деления/умножения с минусом между ними
+  if (/[×÷]-[×÷]/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Запрет деления на ноль в любом виде
+  if (displayExpr.includes('÷0') || displayExpr.includes('÷-0')) {
+    return false;
+  }
+  
+  // Запрет бессмысленных выражений с множественными нулями
+  if (/[×÷]-?0[×÷]-?0/.test(displayExpr)) {
     return false;
   }
   
@@ -413,7 +390,6 @@ function sanitizeForCalc(displayExpr) {
     .replace(/−/g, '-')
     .replace(/\s/g, '');
 
-  // Обработка процентов
   s = s.replace(/(\d+(?:\.\d+)?)([\+\-\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
   s = s.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
   s = s.replace(/[^0-9+\-*/().]/g, '');
@@ -437,7 +413,6 @@ function safeEval(displayExpr) {
       return null;
     }
     
-    // Обработка очень больших/маленьких чисел
     if (Math.abs(result) > 1e15) return null;
     if (Math.abs(result) < 1e-15 && result !== 0) return 0;
     
@@ -446,7 +421,6 @@ function safeEval(displayExpr) {
     if (Number.isInteger(result)) {
       return result;
     } else {
-      // Используем настройку пользователя для округления
       return parseFloat(result.toFixed(decimalPlacesValue));
     }
   } catch (error) {
@@ -454,7 +428,7 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа с проверками - УЛУЧШЕННАЯ */
+/* Вставка символа с ПОЛНОЙ ПРОВЕРКОЙ */
 function insertChar(ch) {
   if (errorState) {
     hideError();
@@ -473,38 +447,48 @@ function insertChar(ch) {
     return;
   }
   
-  // Обработка операторов с разрешением унарных минусов
-  // Обработка операторов с разрешением унарных минусов
-if (ops.includes(lastChar) && ops.includes(ch)) {
-  // Находим всю последовательность операторов в конце выражения
-  const operatorsMatch = expr.match(/[+−×÷]+$/);
-  const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
-  const newSequence = currentOperators + ch;
+  // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
+  const potentialExpr = expr + ch;
   
-  // Запрещаем последовательности из 3+ операторов
-  if (newSequence.length >= 3) {
-    return; // Не добавляем новый оператор
+  // Запрет деления на ноль при вводе
+  if (potentialExpr.includes('÷0') && !potentialExpr.includes('÷0.')) {
+    return;
   }
   
-  // Запрещаем невалидные комбинации из 2 операторов
-  const validCombinations = ['+−', '−+', '×−', '÷−', '−−'];
-  const currentCombination = lastChar + ch;
+  // Запрет невалидных комбинаций операторов при вводе
+  if (/([+×÷])\1/.test(potentialExpr)) {
+    return;
+  }
   
-  // Если это комбинация из 2 операторов, проверяем валидность
-  if (newSequence.length === 2 && !validCombinations.includes(currentCombination)) {
-    // Для невалидных комбинаций - заменяем последний оператор
-    expr = expr.slice(0, -1) + ch;
+  if (/[×÷][+×÷]/.test(potentialExpr)) {
+    return;
+  }
+  
+  // Запрет конструкций типа /-6/-9 при вводе
+  if (/[×÷]-?\d+[×÷]/.test(potentialExpr)) {
+    return;
+  }
+  
+  // Обработка операторов с разрешением унарных минусов
+  if (ops.includes(lastChar) && ops.includes(ch)) {
+    const operatorsMatch = expr.match(/[+−×÷]+$/);
+    const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
+    const newSequence = currentOperators + ch;
+    
+    // Запрещаем последовательности из 3+ операторов
+    if (newSequence.length >= 3) {
+      return;
+    }
+    
+    const validCombinations = ['+−', '−+', '×−', '÷−', '−−'];
+    const currentCombination = lastChar + ch;
+    
+    if (validCombinations.includes(currentCombination)) {
+      expr += ch;
+    } else {
+      expr = expr.slice(0, -1) + ch;
+    }
   } 
-  else if (newSequence.length === 1) {
-    // Одиночный оператор - добавляем как есть
-    expr += ch;
-  }
-  else {
-    // Допустимая комбинация из 2 операторов - добавляем
-    expr += ch;
-  }
-} 
-  // Добавление оператора после результата
   else if (readyForNewInput && ops.includes(ch)) {
     expr += ch;
     readyForNewInput = false;
@@ -534,10 +518,8 @@ function insertNumber(val) {
   const parts = expr.split(/[^0-9.]/);
   const lastNum = parts[parts.length - 1] || '';
   
-  // Запрет множественных точек
   if (val === '.' && lastNum.includes('.')) return;
   
-  // Автодобавление 0 перед точкой если нужно
   if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
     expr += '0.';
   } else {
@@ -559,14 +541,12 @@ function handleEquals() {
     if (result === null) {
       showError();
       
-      // Автоматически убираем ноль при делении на ноль
       if (expr.includes('÷0') && !expr.includes('÷0.')) {
         expr = expr.replace(/÷0$/, '÷').replace(/÷0([+−×÷)])/, '÷$1');
       }
       
       renderScreen();
     } else {
-      // Форматирование результата
       let displayResult;
       if (Number.isInteger(result)) {
         displayResult = result.toString();
@@ -669,7 +649,6 @@ keys.addEventListener('click', (e) => {
   const val = btn.dataset.value;
   const action = btn.dataset.action;
 
-  // Вибрация если поддерживается
   vibrate();
 
   if (action) {
@@ -702,7 +681,7 @@ keys.addEventListener('click', (e) => {
   }
 });
 
-/* История — выбор результата - ИСПРАВЛЕННАЯ */
+/* История — выбор результата */
 historyEl.addEventListener('click', (e) => {
   if (errorState) return;
   
@@ -714,24 +693,18 @@ historyEl.addEventListener('click', (e) => {
     const lastChar = expr.slice(-1);
     const ops = ['+', '−', '×', '÷'];
     
-    // Если выражение пустое или заканчивается оператором - просто добавляем число
     if (!expr || ops.includes(lastChar) || lastChar === '(') {
-      // Если число отрицательное и выражение пустое - добавляем как есть
       if (text.startsWith('−') && !expr) {
         expr = text;
       }
-      // Если число отрицательное и есть оператор - добавляем в скобках
       else if (text.startsWith('−') && ops.includes(lastChar)) {
         expr += `(${text})`;
       }
-      // Если число положительное - добавляем как есть
       else {
         expr += text;
       }
     }
-    // Если выражение заканчивается числом - заменяем последнее число
     else {
-      // Если новое число отрицательное - добавляем в скобках
       if (text.startsWith('−')) {
         expr = expr.replace(/([0-9.]+)$/, `(${text})`);
       } else {
