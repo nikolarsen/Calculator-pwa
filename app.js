@@ -2,11 +2,110 @@ const screen = document.getElementById('screen');
 const historyEl = document.getElementById('history');
 const keys = document.getElementById('keys');
 
+// Элементы настроек
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const themeSelect = document.getElementById('themeSelect');
+const screenFontSize = document.getElementById('screenFontSize');
+const historyFontSize = document.getElementById('historyFontSize');
+const screenSizeValue = document.getElementById('screenSizeValue');
+const historySizeValue = document.getElementById('historySizeValue');
+const saveSettings = document.getElementById('saveSettings');
+const closeSettings = document.getElementById('closeSettings');
+const resetSettings = document.getElementById('resetSettings');
+
 let expr = '';
 let readyForNewInput = false;
 let replaceLastNumber = false;
 let calculationInProgress = false;
 let errorState = false;
+
+/* НАСТРОЙКИ - Загрузка и применение */
+function loadSettings() {
+  const settings = JSON.parse(localStorage.getItem('calcSettings')) || {};
+  
+  // Применяем тему
+  if (settings.theme) {
+    document.body.className = `theme-${settings.theme}`;
+    themeSelect.value = settings.theme;
+  }
+  
+  // Применяем размер шрифта экрана
+  if (settings.screenFontSize) {
+    screen.style.fontSize = `${settings.screenFontSize}px`;
+    screenFontSize.value = settings.screenFontSize;
+    screenSizeValue.textContent = `${settings.screenFontSize}px`;
+  }
+  
+  // Применяем размер шрифта истории
+  if (settings.historyFontSize) {
+    historyEl.style.fontSize = `${settings.historyFontSize}px`;
+    historyFontSize.value = settings.historyFontSize;
+    historySizeValue.textContent = `${settings.historyFontSize}px`;
+  }
+}
+
+function saveSettingsToStorage() {
+  const settings = {
+    theme: themeSelect.value,
+    screenFontSize: parseInt(screenFontSize.value),
+    historyFontSize: parseInt(historyFontSize.value)
+  };
+  
+  localStorage.setItem('calcSettings', JSON.stringify(settings));
+  applySettings();
+}
+
+function applySettings() {
+  // Тема
+  document.body.className = `theme-${themeSelect.value}`;
+  
+  // Размер шрифта экрана
+  screen.style.fontSize = `${screenFontSize.value}px`;
+  screenSizeValue.textContent = `${screenFontSize.value}px`;
+  
+  // Размер шрифта истории
+  historyEl.style.fontSize = `${historyFontSize.value}px`;
+  historySizeValue.textContent = `${historyFontSize.value}px`;
+}
+
+function resetSettingsToDefault() {
+  themeSelect.value = 'dark';
+  screenFontSize.value = '52';
+  historyFontSize.value = '22';
+  applySettings();
+  localStorage.removeItem('calcSettings');
+}
+
+// Обработчики событий для настроек
+screenFontSize.addEventListener('input', function() {
+  screenSizeValue.textContent = `${this.value}px`;
+});
+
+historyFontSize.addEventListener('input', function() {
+  historySizeValue.textContent = `${this.value}px`;
+});
+
+settingsBtn.addEventListener('click', () => {
+  settingsModal.classList.add('active');
+});
+
+closeSettings.addEventListener('click', () => {
+  settingsModal.classList.remove('active');
+});
+
+settingsModal.addEventListener('click', (e) => {
+  if (e.target === settingsModal) {
+    settingsModal.classList.remove('active');
+  }
+});
+
+saveSettings.addEventListener('click', () => {
+  saveSettingsToStorage();
+  settingsModal.classList.remove('active');
+});
+
+resetSettings.addEventListener('click', resetSettingsToDefault);
 
 /* СОХРАНЕНИЕ И ЗАГРУЗКА ИСТОРИИ */
 function saveHistory() {
@@ -471,3 +570,4 @@ document.addEventListener('keydown', (e) => {
 /* Инициализация */
 renderScreen();
 loadHistory(); // Загружаем историю при запуске
+loadSettings(); // Загружаем настройки при запуске
