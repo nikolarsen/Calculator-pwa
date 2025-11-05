@@ -541,3 +541,18 @@ html, body {
     transition-duration: 0s;
   }
 }
+/* ФИКС ДЛЯ ОБВОДКИ КНОПКИ НАСТРОЕК */
+button.settings-btn {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Для Яндекс Браузера и Safari */
+button.settings-btn::-moz-focus-inner {
+  border: 0 !important;
+}
+
+button.settings-btn:-moz-focusring {
+  outline: none !important;
+}
