@@ -21,7 +21,6 @@ const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
-const appIcons = document.querySelectorAll('input[name="appIcon"]');
 
 let expr = '';
 let readyForNewInput = false;
@@ -77,11 +76,6 @@ function loadSettings() {
   if (settings.keyboardSounds) {
     keyboardSounds.value = settings.keyboardSounds;
   }
-  
-  if (settings.appIcon) {
-    document.querySelector(`input[name="appIcon"][value="${settings.appIcon}"]`).checked = true;
-    applyAppIcon(settings.appIcon);
-  }
 }
 
 function saveSettingsToStorage() {
@@ -93,8 +87,7 @@ function saveSettingsToStorage() {
     buttonSize: buttonSize.value,
     buttonOpacity: parseInt(buttonOpacity.value),
     decimalPlaces: decimalPlaces.value,
-    keyboardSounds: keyboardSounds.value,
-    appIcon: document.querySelector('input[name="appIcon"]:checked').value
+    keyboardSounds: keyboardSounds.value
   };
   
   localStorage.setItem('calcSettings', JSON.stringify(settings));
@@ -117,7 +110,6 @@ function applySettings() {
   applyButtonShape(buttonShape.value);
   applyButtonSize(buttonSize.value);
   applyButtonOpacity(buttonOpacity.value);
-  applyAppIcon(document.querySelector('input[name="appIcon"]:checked').value);
 }
 
 function resetSettingsToDefault() {
@@ -129,13 +121,12 @@ function resetSettingsToDefault() {
   buttonOpacity.value = '85';
   decimalPlaces.value = '10';
   keyboardSounds.value = 'off';
-  document.querySelector('input[name="appIcon"][value="default"]').checked = true;
   
   applySettings();
   localStorage.removeItem('calcSettings');
 }
 
-// Исправленные функции для применения настроек
+// Функции для применения настроек
 function applyButtonShape(shape) {
   const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
   buttons.forEach(btn => {
@@ -157,35 +148,6 @@ function applyButtonOpacity(opacity) {
   buttons.forEach(btn => {
     btn.style.opacity = `${opacity}%`;
   });
-}
-
-function applyAppIcon(icon) {
-  console.log('Applying app icon:', icon);
-  
-  // Просто меняем favicon на эмодзи в title
-  let emoji = '🧮';
-  
-  switch(icon) {
-    case 'modern':
-      emoji = '🔢';
-      break;
-    case 'science':
-      emoji = '⚛️';
-      break;
-    case 'simple':
-      emoji = '➗';
-      break;
-    default:
-      emoji = '🧮';
-  }
-  
-  // Меняем заголовок с эмодзи (это видно в табах браузера)
-  document.title = `${emoji} Калькулятор`;
-  
-  console.log('Icon changed to:', emoji);
-  
-  // Для PWA в реальном приложении нужно менять manifest.json
-  // но для демо достаточно смены title
 }
 
 // Обработчики событий для настроек
@@ -623,26 +585,10 @@ function handleAllClear(longPress = false) {
   renderScreen();
 }
 
-/* Функция для воспроизведения звука */
-function playKeySound() {
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
-  } catch (error) {
-    console.log('Audio not supported');
+/* Упрощенная вибрация для мобильных */
+function vibrate() {
+  if (navigator.vibrate && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    navigator.vibrate(10);
   }
 }
 
@@ -655,12 +601,7 @@ keys.addEventListener('click', (e) => {
   const action = btn.dataset.action;
 
   // Вибрация если поддерживается
-  if (navigator.vibrate) navigator.vibrate(10);
-  
-  // Звук если включен
-  if (keyboardSounds.value === 'on') {
-    playKeySound();
-  }
+  vibrate();
 
   if (action) {
     switch (action) {
@@ -714,7 +655,7 @@ historyEl.addEventListener('click', (e) => {
     readyForNewInput = false;
     renderScreen();
     
-    if (navigator.vibrate) navigator.vibrate(10);
+    vibrate();
   } catch (error) {
     // Ничего не делаем при ошибке выбора из истории
   }
@@ -738,14 +679,14 @@ acBtn.addEventListener('touchend', () => {
   }
 });
 
-/* Простая вибрация для кнопок */
+/* Вибрация для кнопок */
 document.querySelectorAll('.btn').forEach(btn => {
   btn.addEventListener('mousedown', () => {
-    if (navigator.vibrate) navigator.vibrate(10);
+    vibrate();
   });
   
   btn.addEventListener('touchstart', () => {
-    if (navigator.vibrate) navigator.vibrate(10);
+    vibrate();
   }, { passive: true });
 });
 
@@ -779,75 +720,9 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* Проверка обновлений - ИСПРАВЛЕННАЯ */
-let updateCheckInProgress = false;
-
-function checkForUpdates() {
-  if (updateCheckInProgress) return;
-  
-  updateCheckInProgress = true;
-  
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready.then(registration => {
-      if (registration.active) {
-        registration.active.postMessage({ type: 'CHECK_UPDATES' });
-      }
-    }).catch(error => {
-      console.log('Update check failed:', error);
-    }).finally(() => {
-      updateCheckInProgress = false;
-    });
-  } else {
-    updateCheckInProgress = false;
-  }
-}
-
-/* Уведомление об обновлении - ИСПРАВЛЕННОЕ */
-let updateNotificationShown = false;
-
-function showUpdateNotification() {
-  // Защита от множественных уведомлений
-  if (updateNotificationShown) return;
-  updateNotificationShown = true;
-  
-  // Используем setTimeout чтобы дать время на рендеринг
-  setTimeout(() => {
-    const shouldUpdate = confirm('Доступна новая версия калькулятора. Обновить?');
-    
-    if (shouldUpdate) {
-      // Принудительное обновление
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
-          return registration.unregister();
-        }).then(() => {
-          window.location.reload();
-        });
-      } else {
-        window.location.reload();
-      }
-    } else {
-      // Сбрасываем флаг через 5 секунд
-      setTimeout(() => {
-        updateNotificationShown = false;
-      }, 5000);
-    }
-  }, 100);
-}
-
-/* Слушаем сообщения от Service Worker - ИСПРАВЛЕННОЕ */
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', event => {
-    if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
-      console.log('Update available received');
-      showUpdateNotification();
-    }
-  });
-}
-
-/* Проверяем обновления при загрузке с задержкой */
-setTimeout(() => {
-  checkForUpdates();
-}, 3000); // Ждем 3 секунды после загрузки
-
-/* И отключаем автоматическую проверку раз в день */
-// setInterval(checkForUpdates, 24 * 60 * 60 * 1000); // ЗАКОММЕНТИРОВАТЬ
+/* Инициализация при загрузке */
+document.addEventListener('DOMContentLoaded', () => {
+  loadSettings();
+  loadHistory();
+  renderScreen();
+});
