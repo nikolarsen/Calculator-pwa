@@ -25,49 +25,34 @@ html, body {
   overflow: hidden;
 }
 /* Кнопка настроек */
-/* Кнопка настроек - исправленная версия */
+/* Кнопка настроек - простой фикс */
 .settings-btn {
-  /* Позиционирование */
-  position: fixed !important;
-  top: 15px !important;
-  right: 15px !important;
-  z-index: 1000 !important;
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: rgba(45, 45, 45, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  color: var(--text);
+  cursor: pointer;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
   
-  /* Размеры */
-  width: 44px !important;
-  height: 44px !important;
-  
-  /* Основные стили */
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: rgba(45, 45, 45, 0.9) !important;
-  border-radius: 50% !important;
-  font-size: 20px !important;
-  color: var(--text) !important;
-  cursor: pointer !important;
-  backdrop-filter: blur(10px) !important;
-  transition: all 0.3s ease !important;
-  
-  /* Убираем обводки */
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  -webkit-tap-highlight-color: transparent !important;
+  /* Только это добавляем */
+  outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .settings-btn:hover {
-  background: rgba(60, 60, 60, 0.9) !important;
-  transform: scale(1.1) !important;
-}
-
-/* Фиксы для браузеров */
-.settings-btn::-moz-focus-inner {
-  border: 0 !important;
-}
-
-.settings-btn:focus {
-  outline: none !important;
+  background: rgba(60, 60, 60, 0.9);
+  transform: scale(1.1);
 }
 
 /* Модальное окно настроек */
