@@ -305,8 +305,8 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // Проверка на деление на ноль
-  if (displayExpr.includes('÷0') && !displayExpr.includes('÷0.')) {
+  // Проверка на деление на ноль (включая 0.0, 0.00 и т.д.)
+  if (displayExpr.includes('÷0') && !displayExpr.match(/÷0\.\d/)) {
     const parts = displayExpr.split('÷0');
     if (parts.length > 1) {
       const afterZero = parts[1];
@@ -380,7 +380,7 @@ function validateExpression(displayExpr) {
   return true;
 }
 
-/* Подготовка выражения */
+/* Подготовка выражения - ИСПРАВЛЕННЫЕ ПРОЦЕНТЫ */
 function sanitizeForCalc(displayExpr) {
   if (!displayExpr) return '';
   
@@ -390,8 +390,14 @@ function sanitizeForCalc(displayExpr) {
     .replace(/−/g, '-')
     .replace(/\s/g, '');
 
-  s = s.replace(/(\d+(?:\.\d+)?)([\+\-\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
+  // ИСПРАВЛЕННАЯ ЛОГИКА ПРОЦЕНТОВ
+  // Для + и -: процент от предыдущего числа
+  s = s.replace(/(\d+(?:\.\d+)?)([\+\-])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
+  // Для × и ÷: процент как обычное число
+  s = s.replace(/(\d+(?:\.\d+)?)([\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($3/100))');
+  // Одиночные проценты
   s = s.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+  
   s = s.replace(/[^0-9+\-*/().]/g, '');
   
   return s;
@@ -501,13 +507,14 @@ function insertChar(ch) {
   renderScreen();
 }
 
-/* Обработка чисел с проверками */
+/* Обработка чисел с проверками - ИСПРАВЛЕННАЯ */
 function insertNumber(val) {
   if (errorState) {
     hideError();
   }
   
-  if (readyForNewInput) {
+  // ЕСЛИ readyForNewInput И НЕТ ОПЕРАТОРА - очищаем выражение
+  if (readyForNewInput && !/[+−×÷]$/.test(expr)) {
     expr = '';
     readyForNewInput = false;
   } else if (replaceLastNumber) {
@@ -526,6 +533,7 @@ function insertNumber(val) {
     expr += val;
   }
   
+  readyForNewInput = false;
   renderScreen();
 }
 
@@ -621,17 +629,27 @@ function handleDelete() {
   }
 }
 
-/* Очистка */
+/* Очистка - ИСПРАВЛЕННАЯ С ВИЗУАЛЬНОЙ ОБРАТНОЙ СВЯЗЬЮ */
 function handleAllClear(longPress = false) {
   if (longPress) {
-    historyEl.innerHTML = '';
-    localStorage.removeItem('calcHistory');
+    // Визуальная обратная связь при очистке истории
+    screen.textContent = 'История очищена';
+    screen.style.color = 'var(--accent)';
+    
+    setTimeout(() => {
+      historyEl.innerHTML = '';
+      localStorage.removeItem('calcHistory');
+      expr = '';
+      hideError();
+      renderScreen();
+    }, 800);
+  } else {
+    expr = '';
+    readyForNewInput = false;
+    replaceLastNumber = false;
+    hideError();
+    renderScreen();
   }
-  expr = '';
-  readyForNewInput = false;
-  replaceLastNumber = false;
-  hideError();
-  renderScreen();
 }
 
 /* Упрощенная вибрация для мобильных */
