@@ -132,9 +132,44 @@ function insertChar(ch) {
     hideError();
   }
   
+  // Автоматическое упрощение чисел вида 0.0, 5.0 перед оператором
+  if (['+', '−', '×', '÷'].includes(ch)) {
+    // Ищем последнее число в выражении
+    const numbers = expr.match(/(\d+\.\d*0*)$/);
+    if (numbers) {
+      const lastNum = numbers[1];
+      // Если число заканчивается на .0 или .00 и т.д., упрощаем его
+      if (lastNum.includes('.') && /\.0+$/.test(lastNum)) {
+        const simplifiedNum = lastNum.replace(/\.0+$/, '');
+        expr = expr.slice(0, -lastNum.length) + simplifiedNum;
+      }
+    }
+  }
+  
   const lastChar = expr.slice(-1);
   const ops = ['+', '−', '×', '÷'];
   
+  // Запрет начала с × или ÷
+  if (!expr && (ch === '×' || ch === '÷')) {
+    return;
+  }
+  
+  // Запрет двойных операторов
+  if (ops.includes(lastChar) && ops.includes(ch)) {
+    expr = expr.slice(0, -1) + ch;
+  } 
+  // Добавление оператора после результата
+  else if (readyForNewInput && ops.includes(ch)) {
+    expr += ch;
+    readyForNewInput = false;
+  }
+  else {
+    expr += ch;
+  }
+  
+  replaceLastNumber = false;
+  renderScreen();
+}
   // Запрет начала с × или ÷
   if (!expr && (ch === '×' || ch === '÷')) {
     return;
