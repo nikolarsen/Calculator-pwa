@@ -1,42 +1,44 @@
-const CACHE_NAME = 'calc-pwa-v3';
+const CACHE_NAME = 'calc-pwa-v4';
 const CACHE_FILES = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './manifest.webmanifest',
-  './icons/icon-72.png',
-  './icons/icon-96.png',
-  './icons/icon-128.png',
-  './icons/icon-144.png',
-  './icons/icon-152.png',
   './icons/icon-192.png',
-  './icons/icon-384.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon-180.png'
 ];
 
-// ✅ Установка и кэширование файлов
+// ✅ Установка и кэширование ВСЕХ файлов
 self.addEventListener('install', event => {
   console.log('[ServiceWorker] Установка...');
   
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[ServiceWorker] Кэширование файлов...');
-        return cache.addAll(CACHE_FILES);
+        console.log('[ServiceWorker] Кэширование всех файлов...');
+        // Важно: используем cache.addAll с fallback
+        return Promise.all(
+          CACHE_FILES.map(url => {
+            return cache.add(url).catch(error => {
+              console.log(`[ServiceWorker] Ошибка кэширования ${url}:`, error);
+              // Продолжаем даже если один файл не закэшировался
+            });
+          })
+        );
       })
       .then(() => {
         console.log('[ServiceWorker] Все файлы закэшированы');
         return self.skipWaiting();
       })
       .catch(error => {
-        console.error('[ServiceWorker] Ошибка кэширования:', error);
+        console.error('[ServiceWorker] Критическая ошибка установки:', error);
       })
   );
 });
 
-// ✅ Активация и очистка старых кэшей
+// ✅ Активация - агрессивная очистка старых кэшей
 self.addEventListener('activate', event => {
   console.log('[ServiceWorker] Активация...');
   
@@ -59,44 +61,97 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ✅ Стратегия кэширования: Network First, затем Cache
+// ✅ СТРАТЕГИЯ: Cache First + Network Fallback
 self.addEventListener('fetch', event => {
   const request = event.request;
   
-  // Игнорируем запросы на внешние ресурсы и аналитику
-  if (!request.url.startsWith(self.location.origin) || 
-      request.url.includes('analytics') ||
-      request.url.includes('tracking')) {
+  // Игнорируем внешние запросы
+  if (!request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  // Для навигационных запросов используем стратегию Network First
+  // Для навигационных запросов - особый подход
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then(networkResponse => {
-          // Клонируем ответ для кэширования
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              cache.put(request, responseToCache);
+      caches.match('./index.html')
+        .then(cachedResponse => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          return fetch(request)
+            .then(networkResponse => {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  cache.put('./index.html', responseToCache);
+                });
+              return networkResponse;
+            })
+            .catch(() => {
+              // Fallback - базовая HTML страница
+              return new Response(
+                `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <title>Калькулятор</title>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width,initial-scale=1">
+                  <style>
+                    body { 
+                      background: #0f0f0f; 
+                      color: #e9e9e9; 
+                      font-family: system-ui; 
+                      display: flex; 
+                      align-items: center; 
+                      justify-content: center; 
+                      height: 100vh; 
+                      margin: 0; 
+                    }
+                    .offline-message { 
+                      text-align: center; 
+                      padding: 20px; 
+                    }
+                    button { 
+                      background: #ff9a2a; 
+                      border: none; 
+                      padding: 12px 24px; 
+                      border-radius: 8px; 
+                      color: #111; 
+                      font-weight: bold; 
+                      cursor: pointer; 
+                      margin-top: 16px; 
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="offline-message">
+                    <h2>🔌 Оффлайн режим</h2>
+                    <p>Приложение загружено из кэша</p>
+                    <button onclick="location.reload()">Обновить</button>
+                  </div>
+                </body>
+                </html>
+                `,
+                { 
+                  headers: { 
+                    'Content-Type': 'text/html; charset=utf-8' 
+                  } 
+                }
+              );
             });
-          return networkResponse;
-        })
-        .catch(() => {
-          // Если сеть недоступна, используем кэш
-          return caches.match('./index.html');
         })
     );
     return;
   }
 
-  // Для статических ресурсов используем Cache First
+  // Для всех остальных запросов - Cache First
   event.respondWith(
     caches.match(request)
       .then(cachedResponse => {
+        // Если есть в кэше - возвращаем
         if (cachedResponse) {
-          // Обновляем кэш в фоне
+          // Фоном обновляем кэш
           event.waitUntil(
             fetch(request)
               .then(networkResponse => {
@@ -106,16 +161,16 @@ self.addEventListener('fetch', event => {
                   });
               })
               .catch(() => {
-                // Игнорируем ошибки при обновлении кэша
+                // Игнорируем ошибки сети при обновлении кэша
               })
           );
           return cachedResponse;
         }
 
-        // Если нет в кэше, загружаем из сети
+        // Если нет в кэше - пробуем сеть
         return fetch(request)
           .then(networkResponse => {
-            // Кэшируем новые ресурсы
+            // Кэшируем успешные ответы
             if (networkResponse.status === 200) {
               const responseToCache = networkResponse.clone();
               caches.open(CACHE_NAME)
@@ -125,116 +180,81 @@ self.addEventListener('fetch', event => {
             }
             return networkResponse;
           })
-          .catch(() => {
-            // Заглушки для разных типов ресурсов
-            if (request.destination === 'image') {
+          .catch(error => {
+            // Fallback для разных типов ресурсов
+            console.log('[ServiceWorker] Ошибка загрузки:', request.url);
+            
+            if (request.destination === 'style') {
               return new Response(
-                '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/></svg>',
-                { headers: { 'Content-Type': 'image/svg+xml' } }
+                '/* Fallback CSS */ body { background: #0f0f0f; color: #e9e9e9; }',
+                { headers: { 'Content-Type': 'text/css' } }
               );
             }
             
-            if (request.destination === 'style') {
-              return new Response('/* Offline fallback */', { 
-                headers: { 'Content-Type': 'text/css' } 
-              });
+            if (request.destination === 'script') {
+              return new Response(
+                'console.log("Fallback JS loaded");',
+                { headers: { 'Content-Type': 'application/javascript' } }
+              );
             }
             
-            return new Response('Оффлайн режим', {
-              status: 408,
-              headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+            // Для manifest - возвращаем базовый
+            if (request.url.includes('manifest')) {
+              return new Response(
+                JSON.stringify({
+                  name: "Калькулятор",
+                  short_name: "Калькулятор",
+                  start_url: "./",
+                  display: "standalone",
+                  background_color: "#0f0f0f",
+                  theme_color: "#111111"
+                }),
+                { headers: { 'Content-Type': 'application/manifest+json' } }
+              );
+            }
+            
+            return new Response('Оффлайн', { 
+              status: 408, 
+              headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
             });
           });
       })
   );
 });
 
-// ✅ Фоновая синхронизация (если понадобится в будущем)
+// ✅ Фоновая синхронизация для обновлений
 self.addEventListener('sync', event => {
-  if (event.tag === 'background-sync') {
-    console.log('[ServiceWorker] Фоновая синхронизация');
-    event.waitUntil(doBackgroundSync());
-  }
-});
-
-async function doBackgroundSync() {
-  // Здесь может быть логика фоновой синхронизации
-  // Например, отправка статистики использования
-  console.log('[ServiceWorker] Выполняется фоновая синхронизация');
-}
-
-// ✅ Обработка push-уведомлений
-self.addEventListener('push', event => {
-  if (!event.data) return;
-  
-  const data = event.data.json();
-  const options = {
-    body: data.body || 'Новое уведомление от калькулятора',
-    icon: './icons/icon-192.png',
-    badge: './icons/icon-72.png',
-    vibrate: [100, 50, 100],
-    data: {
-      url: data.url || './'
-    },
-    actions: [
-      {
-        action: 'open',
-        title: 'Открыть'
-      },
-      {
-        action: 'close',
-        title: 'Закрыть'
-      }
-    ]
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Калькулятор', options)
-  );
-});
-
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  
-  if (event.action === 'open') {
-    event.waitUntil(
-      clients.matchAll({ type: 'window' })
-        .then(clientList => {
-          for (const client of clientList) {
-            if (client.url === event.notification.data.url && 'focus' in client) {
-              return client.focus();
-            }
-          }
-          if (clients.openWindow) {
-            return clients.openWindow(event.notification.data.url);
-          }
-        })
-    );
-  }
-});
-
-// ✅ Периодическая фоновая синхронизация (для будущих функций)
-self.addEventListener('periodicsync', event => {
   if (event.tag === 'update-check') {
-    console.log('[ServiceWorker] Проверка обновлений');
+    console.log('[ServiceWorker] Фоновая проверка обновлений');
     event.waitUntil(checkForUpdates());
   }
 });
 
 async function checkForUpdates() {
-  // Логика проверки обновлений приложения
   try {
     const cache = await caches.open(CACHE_NAME);
-    const requests = CACHE_FILES.map(url => new Request(url));
     
-    for (const request of requests) {
-      const networkResponse = await fetch(request);
-      const cachedResponse = await cache.match(request);
-      
-      if (!cachedResponse || 
-          networkResponse.headers.get('etag') !== cachedResponse.headers.get('etag')) {
-        console.log('[ServiceWorker] Обнаружено обновление:', request.url);
-        await cache.put(request, networkResponse.clone());
+    for (const url of CACHE_FILES) {
+      try {
+        const networkResponse = await fetch(url, { cache: 'no-cache' });
+        const cachedResponse = await cache.match(url);
+        
+        if (!cachedResponse || 
+            networkResponse.headers.get('etag') !== cachedResponse.headers.get('etag')) {
+          console.log('[ServiceWorker] Обнаружено обновление:', url);
+          await cache.put(url, networkResponse.clone());
+          
+          // Уведомляем клиентов об обновлении
+          const clients = await self.clients.matchAll();
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'UPDATE_AVAILABLE',
+              url: url
+            });
+          });
+        }
+      } catch (error) {
+        console.log('[ServiceWorker] Ошибка проверки обновления:', url, error);
       }
     }
   } catch (error) {
@@ -248,7 +268,19 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
   
+  if (event.data && event.data.type === 'CHECK_UPDATES') {
+    checkForUpdates();
+  }
+  
   if (event.data && event.data.type === 'GET_VERSION') {
     event.ports[0].postMessage({ version: CACHE_NAME });
+  }
+});
+
+// ✅ Периодическая фоновая синхронизация
+self.addEventListener('periodicsync', event => {
+  if (event.tag === 'background-update') {
+    console.log('[ServiceWorker] Периодическая проверка обновлений');
+    event.waitUntil(checkForUpdates());
   }
 });
