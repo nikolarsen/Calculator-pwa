@@ -1,4 +1,4 @@
-Проверь. Кажется ничего не изменилось. const screen = document.getElementById('screen');
+const screen = document.getElementById('screen');
 const historyEl = document.getElementById('history');
 const keys = document.getElementById('keys');
 
@@ -481,10 +481,10 @@ function insertChar(ch) {
   // СУПЕР ЗАЩИТА: Проверка всей комбинации при вводе
   const newExpr = expr + ch;
   
-  // Запрет умножения/деления на -0
-  if ((ch === '×' || ch === '÷') && /-0$/.test(expr)) {
-    return;
-  }
+// Запрет умножения/деления на -0 (после любого оператора)
+if ((ch === '×' || ch === '÷') && /[+−×÷]-0$/.test(expr)) {
+  return;
+}
   
   // Запрет деления на ноль при вводе
   if (newExpr.includes('÷0') && !newExpr.includes('÷0.')) {
