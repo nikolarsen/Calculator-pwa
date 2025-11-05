@@ -18,6 +18,48 @@
 </head>
 
 <body>
+  <!-- Кнопка настроек -->
+  <button class="settings-btn" id="settingsBtn" aria-label="Настройки">⚙️</button>
+  
+  <!-- Модальное окно настроек -->
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-content">
+      <h2>Настройки</h2>
+      
+      <!-- Выбор темы -->
+      <div class="setting-group">
+        <label>Тема:</label>
+        <select id="themeSelect">
+          <option value="dark">Тёмная</option>
+          <option value="light">Светлая</option>
+          <option value="amoled">AMOLED</option>
+          <option value="blue">Синяя</option>
+        </select>
+      </div>
+      
+      <!-- Размер шрифта экрана -->
+      <div class="setting-group">
+        <label>Размер шрифта экрана:</label>
+        <input type="range" id="screenFontSize" min="36" max="72" value="52">
+        <span id="screenSizeValue">52px</span>
+      </div>
+      
+      <!-- Размер шрифта истории -->
+      <div class="setting-group">
+        <label>Размер шрифта истории:</label>
+        <input type="range" id="historyFontSize" min="16" max="32" value="22">
+        <span id="historySizeValue">22px</span>
+      </div>
+      
+      <!-- Кнопки -->
+      <div class="settings-buttons">
+        <button class="btn" id="saveSettings">Сохранить</button>
+        <button class="btn" id="closeSettings">Закрыть</button>
+        <button class="btn" id="resetSettings">Сбросить</button>
+      </div>
+    </div>
+  </div>
+
   <main class="calculator" role="application" aria-label="Калькулятор">
 
     <div class="topbar">
