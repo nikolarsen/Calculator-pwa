@@ -160,83 +160,32 @@ function applyButtonOpacity(opacity) {
 }
 
 function applyAppIcon(icon) {
-  console.log('Применяем иконку через Canvas:', icon);
+  console.log('Applying app icon:', icon);
   
-  // Удаляем старые иконки
-  const oldIcons = document.querySelectorAll("link[rel*='icon']");
-  oldIcons.forEach(icon => icon.remove());
-  
-  // Определяем эмодзи для каждой иконки
+  // Просто меняем favicon на эмодзи в title
   let emoji = '🧮';
-  let bgColor = '#ff9a2a';
   
   switch(icon) {
     case 'modern':
       emoji = '🔢';
-      bgColor = '#4CAF50';
       break;
     case 'science':
       emoji = '⚛️';
-      bgColor = '#9C27B0';
       break;
     case 'simple':
       emoji = '➗';
-      bgColor = '#2196F3';
       break;
     default:
       emoji = '🧮';
-      bgColor = '#ff9a2a';
   }
   
-  // Создаем иконки разных размеров
-  const sizes = [16, 32, 192, 512];
+  // Меняем заголовок с эмодзи (это видно в табах браузера)
+  document.title = `${emoji} Калькулятор`;
   
-  sizes.forEach(size => {
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    
-    // Фон
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, size, size);
-    
-    // Текст (эмодзи)
-    ctx.font = `${size * 0.6}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(emoji, size/2, size/2);
-    
-    // Создаем link
-    const link = document.createElement('link');
-    link.rel = size === 16 ? 'icon' : 'icon';
-    link.sizes = `${size}x${size}`;
-    link.href = canvas.toDataURL('image/png');
-    
-    document.head.appendChild(link);
-  });
+  console.log('Icon changed to:', emoji);
   
-  // Для Apple Touch Icon создаем отдельную большую иконку
-  const appleCanvas = document.createElement('canvas');
-  appleCanvas.width = 180;
-  appleCanvas.height = 180;
-  const appleCtx = appleCanvas.getContext('2d');
-  
-  appleCtx.fillStyle = bgColor;
-  appleCtx.fillRect(0, 0, 180, 180);
-  appleCtx.font = '108px Arial';
-  appleCtx.textAlign = 'center';
-  appleCtx.textBaseline = 'middle';
-  appleCtx.fillStyle = '#ffffff';
-  appleCtx.fillText(emoji, 90, 90);
-  
-  const appleIcon = document.createElement('link');
-  appleIcon.rel = 'apple-touch-icon';
-  appleIcon.href = appleCanvas.toDataURL('image/png');
-  document.head.appendChild(appleIcon);
-  
-  console.log('Иконка успешно применена:', icon);
+  // Для PWA в реальном приложении нужно менять manifest.json
+  // но для демо достаточно смены title
 }
 
 // Обработчики событий для настроек
