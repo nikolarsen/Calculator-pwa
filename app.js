@@ -135,9 +135,9 @@ function resetSettingsToDefault() {
   localStorage.removeItem('calcSettings');
 }
 
-// Новые функции для применения настроек
+// Исправленные функции для применения настроек
 function applyButtonShape(shape) {
-  const buttons = document.querySelectorAll('.btn');
+  const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
   buttons.forEach(btn => {
     btn.classList.remove('btn-shape-rounded', 'btn-shape-square', 'btn-shape-circle');
     btn.classList.add(`btn-shape-${shape}`);
@@ -145,7 +145,7 @@ function applyButtonShape(shape) {
 }
 
 function applyButtonSize(size) {
-  const buttons = document.querySelectorAll('.btn');
+  const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
   buttons.forEach(btn => {
     btn.classList.remove('btn-size-compact', 'btn-size-standard', 'btn-size-large');
     btn.classList.add(`btn-size-${size}`);
@@ -153,7 +153,7 @@ function applyButtonSize(size) {
 }
 
 function applyButtonOpacity(opacity) {
-  const buttons = document.querySelectorAll('.btn');
+  const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
   buttons.forEach(btn => {
     btn.style.opacity = `${opacity}%`;
   });
