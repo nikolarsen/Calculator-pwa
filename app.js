@@ -296,7 +296,7 @@ function addHistoryItem(input, result) {
   saveHistory();
 }
 
-/* Проверка синтаксиса - ПРОФЕССИОНАЛЬНАЯ ЗАЩИТА */
+/* Проверка синтаксиса - СУПЕР ЗАЩИТА */
 function validateExpression(displayExpr) {
   if (!displayExpr) return false;
   
@@ -375,6 +375,21 @@ function validateExpression(displayExpr) {
     return false;
   }
   
+  // СУПЕР ЗАЩИТА: Запрет множественных унарных минусов
+  if (/−−\d/.test(displayExpr)) {
+    return false;
+  }
+  
+  // СУПЕР ЗАЩИТА: Запрет ведущих нулей
+  if (/\D0\d/.test(displayExpr)) {
+    return false;
+  }
+  
+  // СУПЕР ЗАЩИТА: Запрет сложных бессмысленных комбинаций
+  if (/[+−][+−]\d/.test(displayExpr)) {
+    return false;
+  }
+  
   return true;
 }
 
@@ -389,11 +404,8 @@ function sanitizeForCalc(displayExpr) {
     .replace(/\s/g, '');
 
   // ПРОФЕССИОНАЛЬНАЯ ЛОГИКА ПРОЦЕНТОВ
-  // Для + и -: процент от предыдущего числа
   s = s.replace(/(\d+(?:\.\d+)?)([\+\-])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
-  // Для × и ÷: процент как обычное число
   s = s.replace(/(\d+(?:\.\d+)?)([\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($3/100))');
-  // Одиночные проценты
   s = s.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
   
   s = s.replace(/[^0-9+\-*/().]/g, '');
@@ -431,7 +443,8 @@ function safeEval(displayExpr) {
     return null;
   }
 }
-/* Вставка символа с ПРОФЕССИОНАЛЬНОЙ ПРОВЕРКОЙ */
+
+/* Вставка символа - СУПЕР ЗАЩИТА */
 function insertChar(ch) {
   if (errorState) {
     hideError();
@@ -449,11 +462,20 @@ function insertChar(ch) {
   if (lastChar === '(' && (ch === '×' || ch === '÷')) {
     return;
   }
-  // ДОБАВИТЬ ЭТУ ПРОВЕРКУ:
-  // После унарного минуса нельзя ставить × или ÷
+  
+  // СУПЕР ЗАЩИТА: После унарного минуса нельзя ставить × или ÷
   if (lastChar === '−' && (ch === '×' || ch === '÷')) {
     return;
   }
+  
+  // СУПЕР ЗАЩИТА: Запрет множественных унарных минусов
+  if (lastChar === '−' && ch === '−' && expr.length > 1) {
+    const prevChar = expr.slice(-2, -1);
+    if (ops.includes(prevChar) || prevChar === '(') {
+      return; // Запрещаем второй унарный минус подряд
+    }
+  }
+  
   // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
   const potentialExpr = expr + ch;
   
@@ -482,7 +504,7 @@ function insertChar(ch) {
     const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
     const newSequence = currentOperators + ch;
     
-    // Запрещаем последовательности из 3+ операторов
+    // СУПЕР ЗАЩИТА: Максимум 2 оператора подряд
     if (newSequence.length >= 3) {
       return;
     }
@@ -531,7 +553,6 @@ function insertNumber(val) {
   
   // ПРОФЕССИОНАЛЬНАЯ АВТОТОЧКА ПОСЛЕ НУЛЯ
   if (val === '0' && lastNum === '0') {
-    // Если уже есть один ноль и вводим еще ноль - добавляем точку
     expr += '.';
     renderScreen();
     return;
@@ -643,7 +664,6 @@ function handleDelete() {
 /* Очистка - ПРОФЕССИОНАЛЬНАЯ С ВИЗУАЛЬНОЙ ОБРАТНОЙ СВЯЗЬЮ */
 function handleAllClear(longPress = false) {
   if (longPress) {
-    // Визуальная обратная связь при очистке истории
     screen.textContent = 'История очищена';
     screen.style.color = 'var(--accent)';
     
