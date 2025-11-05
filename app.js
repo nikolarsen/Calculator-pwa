@@ -475,6 +475,10 @@ if (ch === '−' && lastChar === '−') {
 if ((lastChar === '−' && ch === '+') || (lastChar === '+' && ch === '−')) {
   return;
 }
+  // СУПЕР ЗАЩИТА: Запрет умножения/деления на ноль при вводе
+if ((ch === '×' || ch === '÷') && expr.endsWith('-0')) {
+  return;
+}
   // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
   const potentialExpr = expr + ch;
   
