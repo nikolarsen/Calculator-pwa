@@ -726,3 +726,83 @@ document.addEventListener('DOMContentLoaded', () => {
   loadHistory();
   renderScreen();
 });
+const CACHE_NAME = 'calc-pwa-v4';
+const CACHE_FILES = [
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/apple-touch-icon-180.png'
+];
+
+// Установка и кэширование
+self.addEventListener('install', event => {
+  console.log('[ServiceWorker] Установка...');
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('[ServiceWorker] Кэширование файлов...');
+        return Promise.all(
+          CACHE_FILES.map(url => {
+            return cache.add(url).catch(error => {
+              console.log(`[ServiceWorker] Ошибка кэширования ${url}:`, error);
+            });
+          })
+        );
+      })
+      .then(() => {
+        console.log('[ServiceWorker] Все файлы закэшированы');
+        return self.skipWaiting();
+      })
+  );
+});
+
+// Активация - очистка старых кэшей
+self.addEventListener('activate', event => {
+  console.log('[ServiceWorker] Активация...');
+  
+  event.waitUntil(
+    caches.keys()
+      .then(keys => {
+        return Promise.all(
+          keys.map(key => {
+            if (key !== CACHE_NAME) {
+              console.log('[ServiceWorker] Удаляю старый кэш:', key);
+              return caches.delete(key);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('[ServiceWorker] Активен');
+        return self.clients.claim();
+      })
+  );
+});
+
+// Простая стратегия кэширования для мобильных
+self.addEventListener('fetch', event => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match('./index.html')
+        .then(cached => cached || fetch(event.request))
+    );
+    return;
+  }
+  
+  event.respondWith(
+    caches.match(event.request)
+      .then(cached => cached || fetch(event.request))
+  );
+});
+
+// Обработка сообщений от главного потока
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
