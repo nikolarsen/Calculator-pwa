@@ -28,6 +28,74 @@ let replaceLastNumber = false;
 let calculationInProgress = false;
 let errorState = false;
 
+// ФИКСАЦИЯ ПОРТРЕТНОЙ ОРИЕНТАЦИИ
+function initializeOrientation() {
+  // Проверяем ориентацию при загрузке
+  if (window.innerHeight < window.innerWidth) {
+    showLandscapeWarning();
+  }
+  
+  // Слушаем изменения ориентации
+  window.addEventListener('resize', handleOrientationChange);
+  window.addEventListener('orientationchange', handleOrientationChange);
+}
+
+function handleOrientationChange() {
+  if (window.innerHeight < window.innerWidth) {
+    showLandscapeWarning();
+  } else {
+    hideLandscapeWarning();
+  }
+}
+
+function showLandscapeWarning() {
+  let warning = document.getElementById('landscape-warning');
+  if (!warning) {
+    warning = document.createElement('div');
+    warning.id = 'landscape-warning';
+    warning.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        font-size: 24px;
+        text-align: center;
+        padding: 20px;
+      ">
+        <div style="font-size: 48px; margin-bottom: 20px;">📱</div>
+        <div>Пожалуйста, поверните устройство в портретный режим</div>
+        <div style="font-size: 16px; margin-top: 10px; opacity: 0.7;">
+          Калькулятор работает только в портретной ориентации
+        </div>
+      </div>
+    `;
+    document.body.appendChild(warning);
+  }
+  warning.style.display = 'flex';
+  
+  document.querySelector('.calculator').style.display = 'none';
+  document.querySelector('.settings-btn').style.display = 'none';
+}
+
+function hideLandscapeWarning() {
+  const warning = document.getElementById('landscape-warning');
+  if (warning) {
+    warning.style.display = 'none';
+  }
+  
+  document.querySelector('.calculator').style.display = 'flex';
+  document.querySelector('.settings-btn').style.display = 'flex';
+}
+
 /* НАСТРОЙКИ - Загрузка и применение */
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem('calcSettings')) || {};
@@ -832,4 +900,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   loadHistory();
   renderScreen();
+  initializeOrientation();
 });
