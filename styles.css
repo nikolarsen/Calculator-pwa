@@ -24,14 +24,13 @@ html, body {
   color: var(--text);
   overflow: hidden;
 }
-
 /* Кнопка настроек */
 .settings-btn {
   position: fixed;
   top: 15px;
   right: 15px;
   background: rgba(45, 45, 45, 0.9);
-  border: none;
+  border: none !important;
   border-radius: 50%;
   width: 44px;
   height: 44px;
@@ -41,11 +40,24 @@ html, body {
   z-index: 1000;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  
+  /* Убираем ВСЕ возможные обводки и тени */
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .settings-btn:hover {
   background: rgba(60, 60, 60, 0.9);
   transform: scale(1.1);
+}
+
+/* Для мобильных устройств */
+.settings-btn:active,
+.settings-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 /* Модальное окно настроек */
