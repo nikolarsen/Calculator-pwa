@@ -532,40 +532,21 @@ html, body {
     backdrop-filter: none;
   }
 }
-/* ФИКСАЦИЯ ПОРТРЕТНОЙ ОРИЕНТАЦИИ */
-@media screen and (min-width: 768px) and (orientation: landscape) {
-  body::before {
-    content: "Пожалуйста, поверните устройство в портретный режим";
-    position: fixed;
-    top: 0;
+/* ПРИНУДИТЕЛЬНАЯ ПОРТРЕТНАЯ ОРИЕНТАЦИЯ */
+@media (orientation: landscape) and (max-height: 600px) {
+  body {
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    width: 100vh;
+    height: 100vw;
+    overflow-x: hidden;
+    position: absolute;
+    top: 100%;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    text-align: center;
-    z-index: 10000;
-    padding: 20px;
   }
   
-  .calculator,
-  .settings-btn {
-    display: none !important;
-  }
-}
-
-/* На больших экранах разрешаем ландшафт */
-@media screen and (min-width: 1024px) {
-  body::before {
-    display: none !important;
-  }
-  
-  .calculator,
-  .settings-btn {
-    display: flex !important;
+  .calculator {
+    width: 100vw;
+    height: 100vh;
   }
 }
