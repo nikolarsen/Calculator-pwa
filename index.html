@@ -51,6 +51,78 @@
         <span id="historySizeValue">22px</span>
       </div>
       
+      <!-- Форма кнопок -->
+      <div class="setting-group">
+        <label>Форма кнопок:</label>
+        <select id="buttonShape">
+          <option value="rounded">Скругленные</option>
+          <option value="square">Квадратные</option>
+          <option value="circle">Круглые</option>
+        </select>
+      </div>
+      
+      <!-- Размер кнопок -->
+      <div class="setting-group">
+        <label>Размер кнопок:</label>
+        <select id="buttonSize">
+          <option value="compact">Компактные</option>
+          <option value="standard">Стандартные</option>
+          <option value="large">Большие</option>
+        </select>
+      </div>
+      
+      <!-- Прозрачность -->
+      <div class="setting-group">
+        <label>Прозрачность кнопок:</label>
+        <input type="range" id="buttonOpacity" min="50" max="100" value="85">
+        <span id="opacityValue">85%</span>
+      </div>
+      
+      <!-- Знаки после запятой -->
+      <div class="setting-group">
+        <label>Знаков после запятой:</label>
+        <select id="decimalPlaces">
+          <option value="0">0</option>
+          <option value="2">2</option>
+          <option value="4">4</option>
+          <option value="6">6</option>
+          <option value="8">8</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+      
+      <!-- Звуки -->
+      <div class="setting-group">
+        <label>Звуки клавиш:</label>
+        <select id="keyboardSounds">
+          <option value="off">Выключены</option>
+          <option value="on">Включены</option>
+        </select>
+      </div>
+      
+      <!-- Иконка приложения -->
+      <div class="setting-group">
+        <label>Иконка приложения:</label>
+        <div class="icon-options">
+          <label class="icon-option">
+            <input type="radio" name="appIcon" value="default" checked>
+            <div class="icon-preview">🧮</div>
+          </label>
+          <label class="icon-option">
+            <input type="radio" name="appIcon" value="modern">
+            <div class="icon-preview">🔢</div>
+          </label>
+          <label class="icon-option">
+            <input type="radio" name="appIcon" value="science">
+            <div class="icon-preview">⚛️</div>
+          </label>
+          <label class="icon-option">
+            <input type="radio" name="appIcon" value="simple">
+            <div class="icon-preview">➗</div>
+          </label>
+        </div>
+      </div>
+      
       <!-- Кнопки -->
       <div class="settings-buttons">
         <button class="btn" id="saveSettings">Сохранить</button>
