@@ -467,14 +467,10 @@ function insertChar(ch) {
   if (lastChar === '−' && (ch === '×' || ch === '÷')) {
     return;
   }
-  
-  // СУПЕР ЗАЩИТА: Запрет множественных унарных минусов
-  if (lastChar === '−' && ch === '−' && expr.length > 1) {
-    const prevChar = expr.slice(-2, -1);
-    if (ops.includes(prevChar) || prevChar === '(') {
-      return; // Запрещаем второй унарный минус подряд
-    }
-  }
+// СУПЕР ЗАЩИТА: Простой запрет двух минусов подряд
+if (ch === '−' && lastChar === '−') {
+  return;
+}
   
   // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
   const potentialExpr = expr + ch;
