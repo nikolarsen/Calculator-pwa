@@ -15,6 +15,18 @@ function renderScreen() {
   screen.setAttribute('aria-label', `Экран: ${displayValue}`);
 }
 
+/* Показать ошибку */
+function showError() {
+  errorState = true;
+  screen.style.color = 'var(--danger)';
+}
+
+/* Скрыть ошибку */
+function hideError() {
+  errorState = false;
+  screen.style.color = '';
+}
+
 /* Добавление в историю */
 function addHistoryItem(input, result) {
   const el = document.createElement('div');
@@ -30,6 +42,40 @@ function addHistoryItem(input, result) {
   while (historyEl.children.length > 30) {
     historyEl.removeChild(historyEl.lastChild);
   }
+}
+
+/* Проверка синтаксиса */
+function validateExpression(displayExpr) {
+  if (!displayExpr) return false;
+  
+  // Нельзя начинать с × или ÷
+  if (displayExpr.startsWith('×') || displayExpr.startsWith('÷')) {
+    return false;
+  }
+  
+  // Проверка на деление на ноль
+  if (displayExpr.includes('÷0') && !displayExpr.includes('÷0.')) {
+    // Разрешаем ÷0.5 но запрещаем ÷0
+    const parts = displayExpr.split('÷0');
+    if (parts.length > 1) {
+      const afterZero = parts[1];
+      if (!afterZero || afterZero.startsWith(')') || /[+−×÷]/.test(afterZero[0])) {
+        return false;
+      }
+    }
+  }
+  
+  // Проверка на двойные операторы в конце
+  if (/[+−×÷]=?$/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Проверка на пустые скобки
+  if (displayExpr.includes('()')) {
+    return false;
+  }
+  
+  return true;
 }
 
 /* Подготовка выражения */
@@ -50,16 +96,14 @@ function sanitizeForCalc(displayExpr) {
   return s;
 }
 
-/* Безопасное вычисление с улучшенной логикой ошибок */
+/* Безопасное вычисление */
 function safeEval(displayExpr) {
-  const jsExpr = sanitizeForCalc(displayExpr);
-  
-  if (!jsExpr) return null;
-  
-  // Проверка на пустые выражения и синтаксические ошибки
-  if (jsExpr.includes('()') || /[+\-*\/]$/.test(jsExpr)) {
+  if (!validateExpression(displayExpr)) {
     return null;
   }
+  
+  const jsExpr = sanitizeForCalc(displayExpr);
+  if (!jsExpr) return null;
 
   try {
     const result = Function('"use strict";return(' + jsExpr + ')')();
@@ -75,7 +119,6 @@ function safeEval(displayExpr) {
     if (Number.isInteger(result)) {
       return result;
     } else {
-      // Округление до 10 знаков с удалением лишних нулей
       return parseFloat(result.toFixed(10));
     }
   } catch (error) {
@@ -83,40 +126,64 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Обработка ошибки */
-function handleError() {
-  errorState = true;
-  expr = '';
-  screen.style.color = 'var(--danger)';
-  setTimeout(() => {
-    screen.style.color = '';
-    errorState = false;
-  }, 300);
-}
-
-/* Вставка символа */
+/* Вставка символа с проверками */
 function insertChar(ch) {
   if (errorState) {
-    expr = '';
-    errorState = false;
-    screen.style.color = '';
+    hideError();
   }
   
   const lastChar = expr.slice(-1);
   const ops = ['+', '−', '×', '÷'];
   
-  if (readyForNewInput) {
-    expr = '';
-    readyForNewInput = false;
+  // Запрет начала с × или ÷
+  if (!expr && (ch === '×' || ch === '÷')) {
+    return;
   }
   
+  // Запрет двойных операторов
   if (ops.includes(lastChar) && ops.includes(ch)) {
     expr = expr.slice(0, -1) + ch;
-  } else {
+  } 
+  // Добавление оператора после результата
+  else if (readyForNewInput && ops.includes(ch)) {
+    expr += ch;
+    readyForNewInput = false;
+  }
+  else {
     expr += ch;
   }
   
   replaceLastNumber = false;
+  renderScreen();
+}
+
+/* Обработка чисел с проверками */
+function insertNumber(val) {
+  if (errorState) {
+    hideError();
+  }
+  
+  if (readyForNewInput) {
+    expr = '';
+    readyForNewInput = false;
+  } else if (replaceLastNumber) {
+    expr = expr.replace(/([0-9.]+)$/, '');
+    replaceLastNumber = false;
+  }
+  
+  const parts = expr.split(/[^0-9.]/);
+  const lastNum = parts[parts.length - 1] || '';
+  
+  // Запрет множественных точек
+  if (val === '.' && lastNum.includes('.')) return;
+  
+  // Автодобавление 0 перед точкой если нужно
+  if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
+    expr += '0.';
+  } else {
+    expr += val;
+  }
+  
   renderScreen();
 }
 
@@ -130,7 +197,18 @@ function handleEquals() {
     const result = safeEval(expr);
     
     if (result === null) {
-      handleError();
+      showError();
+      
+      // Автоматически убираем ноль при делении на ноль
+      if (expr.includes('÷0') && !expr.includes('÷0.')) {
+        expr = expr.replace(/÷0$/, '÷').replace(/÷0([+−×÷)])/, '÷$1');
+      }
+      // Убираем лишний оператор в конце
+      else if (/[+−×÷]=?$/.test(expr)) {
+        expr = expr.replace(/[+−×÷]=?$/, '');
+      }
+      
+      renderScreen();
     } else {
       // Форматирование результата
       let displayResult;
@@ -151,7 +229,7 @@ function handleEquals() {
     }
     
   } catch (error) {
-    handleError();
+    showError();
   } finally {
     setTimeout(() => {
       calculationInProgress = false;
@@ -173,9 +251,7 @@ function handlePercent() {
 /* Скобки */
 function handleParen() {
   if (errorState) {
-    expr = '';
-    errorState = false;
-    screen.style.color = '';
+    hideError();
   }
   
   const open = (expr.match(/\(/g) || []).length;
@@ -200,11 +276,7 @@ function handleParen() {
 /* Удаление */
 function handleDelete() {
   if (errorState) {
-    expr = '';
-    errorState = false;
-    screen.style.color = '';
-    renderScreen();
-    return;
+    hideError();
   }
   
   if (expr.length > 0) {
@@ -221,8 +293,7 @@ function handleAllClear(longPress = false) {
   expr = '';
   readyForNewInput = false;
   replaceLastNumber = false;
-  errorState = false;
-  screen.style.color = '';
+  hideError();
   renderScreen();
 }
 
@@ -260,32 +331,7 @@ keys.addEventListener('click', (e) => {
 
   if (val) {
     if (/[0-9.]/.test(val)) {
-      if (errorState) {
-        expr = '';
-        errorState = false;
-        screen.style.color = '';
-      }
-      
-      if (readyForNewInput) {
-        expr = '';
-        readyForNewInput = false;
-      } else if (replaceLastNumber) {
-        expr = expr.replace(/([0-9.]+)$/, '');
-        replaceLastNumber = false;
-      }
-      
-      const parts = expr.split(/[^0-9.]/);
-      const lastNum = parts[parts.length - 1] || '';
-      
-      if (val === '.' && lastNum.includes('.')) return;
-      
-      if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
-        expr += '0.';
-      } else {
-        expr += val;
-      }
-      
-      renderScreen();
+      insertNumber(val);
     } else {
       insertChar(val);
     }
@@ -347,6 +393,36 @@ document.querySelectorAll('.btn').forEach(btn => {
   btn.addEventListener('touchstart', () => {
     if (navigator.vibrate) navigator.vibrate(10);
   }, { passive: true });
+});
+
+/* Обработка клавиатуры */
+document.addEventListener('keydown', (e) => {
+  const key = e.key;
+  const keyActions = {
+    'Enter': 'equals',
+    '=': 'equals',
+    'Escape': 'all-clear',
+    'Delete': 'all-clear',
+    'Backspace': 'delete',
+    '%': 'percent',
+    '(': 'paren',
+    ')': 'paren'
+  };
+  
+  const action = keyActions[key];
+  let btn = null;
+  
+  if (action) {
+    btn = document.querySelector(`[data-action="${action}"]`);
+  } else if (/[0-9\.+\-*/]/.test(key)) {
+    const displayKey = key.replace('*', '×').replace('/', '÷').replace('-', '−');
+    btn = document.querySelector(`[data-value="${displayKey}"]`);
+  }
+  
+  if (btn) {
+    btn.click();
+    e.preventDefault();
+  }
 });
 
 /* Инициализация */
