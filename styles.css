@@ -447,3 +447,38 @@ html, body {
     transition-duration: 0s;
   }
 }
+/* ЭКСТРЕННОЕ ИСПРАВЛЕНИЕ ФОРМ КНОПОК */
+.btn-shape-rounded {
+  border-radius: 12px !important;
+}
+
+.btn-shape-square {
+  border-radius: 4px !important;
+}
+
+.btn-shape-circle {
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ЭКСТРЕННОЕ ИСПРАВЛЕНИЕ РАЗМЕРОВ */
+.btn-size-compact {
+  padding: 12px 8px !important;
+  font-size: 18px !important;
+  min-height: 50px !important;
+}
+
+.btn-size-standard {
+  padding: 16px 10px !important;
+  font-size: 20px !important;
+  min-height: 60px !important;
+}
+
+.btn-size-large {
+  padding: 20px 14px !important;
+  font-size: 24px !important;
+  min-height: 70px !important;
+}
