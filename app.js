@@ -367,7 +367,20 @@ if (/[×÷]-[×÷]/.test(displayExpr)) {
   if (open !== close) {
     return false;
   }
-  
+  // Запрет деления на ноль в любом виде
+if (displayExpr.includes('÷0') || displayExpr.includes('÷-0')) {
+  return false;
+}
+
+// Запрет бессмысленных выражений с множественными нулями и операторами
+if (/[×÷]-?0[×÷]-?0/.test(displayExpr)) {
+  return false;
+}
+
+// Запрет выражений с тремя и более нулями подряд с операторами
+if (/([×÷]-?0){3,}/.test(displayExpr)) {
+  return false;
+}
   // НОВЫЕ ПРОВЕРКИ: Запрет невалидных комбинаций операторов
   if (/([+×÷])\1/.test(displayExpr)) {
     return false; // Запрещаем ++, ××, ÷÷
