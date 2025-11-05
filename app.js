@@ -170,27 +170,6 @@ function insertChar(ch) {
   replaceLastNumber = false;
   renderScreen();
 }
-  // Запрет начала с × или ÷
-  if (!expr && (ch === '×' || ch === '÷')) {
-    return;
-  }
-  
-  // Запрет двойных операторов
-  if (ops.includes(lastChar) && ops.includes(ch)) {
-    expr = expr.slice(0, -1) + ch;
-  } 
-  // Добавление оператора после результата
-  else if (readyForNewInput && ops.includes(ch)) {
-    expr += ch;
-    readyForNewInput = false;
-  }
-  else {
-    expr += ch;
-  }
-  
-  replaceLastNumber = false;
-  renderScreen();
-}
 
 /* Обработка чисел с проверками */
 function insertNumber(val) {
@@ -238,10 +217,6 @@ function handleEquals() {
       if (expr.includes('÷0') && !expr.includes('÷0.')) {
         expr = expr.replace(/÷0$/, '÷').replace(/÷0([+−×÷)])/, '÷$1');
       }
-  // НЕ убираем оператор в конце - оставляем как есть для редактирования
-// else if (/[+−×÷]=?$/.test(expr)) {
-//   expr = expr.replace(/[+−×÷]=?$/, '');
-// }
       
       renderScreen();
     } else {
