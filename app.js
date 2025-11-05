@@ -27,7 +27,20 @@ let readyForNewInput = false;
 let replaceLastNumber = false;
 let calculationInProgress = false;
 let errorState = false;
+// ФИКСАЦИЯ ПОРТРЕТНОЙ ОРИЕНТАЦИИ
+function lockPortraitOrientation() {
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('portrait').catch(() => {
+      // Игнорируем ошибки если браузер не поддерживает
+    });
+  }
+}
 
+// Попытка блокировки ориентации при загрузке
+lockPortraitOrientation();
+
+// Также блокируем при изменении ориентации
+window.addEventListener('orientationchange', lockPortraitOrientation);
 /* НАСТРОЙКИ - Загрузка и применение */
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem('calcSettings')) || {};
