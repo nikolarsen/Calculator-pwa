@@ -522,3 +522,46 @@ html, body {
     min-height: 56px !important;
   }
 }
+/* Стили для выбора иконок */
+.icon-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.icon-option {
+  text-align: center;
+  cursor: pointer;
+}
+
+.icon-option input {
+  display: none;
+}
+
+.icon-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--bg);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+
+.icon-option input:checked + .icon-preview {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #111;
+}
+
+/* Адаптивность для выбора иконок */
+@media (max-width: 420px) {
+  .icon-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
