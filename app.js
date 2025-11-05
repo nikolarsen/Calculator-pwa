@@ -471,7 +471,10 @@ function insertChar(ch) {
 if (ch === '−' && lastChar === '−') {
   return;
 }
-  
+  // СУПЕР ЗАЩИТА: Запрет комбинаций -+ и +-
+if ((lastChar === '−' && ch === '+') || (lastChar === '+' && ch === '−')) {
+  return;
+}
   // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
   const potentialExpr = expr + ch;
   
@@ -553,7 +556,12 @@ function insertNumber(val) {
     renderScreen();
     return;
   }
-  
+  // Запрет ведущих нулей (кроме 0.xxx)
+if (val !== '.' && lastNum === '0' && !lastNum.includes('.')) {
+  expr = expr.slice(0, -1) + val;
+  renderScreen();
+  return;
+}
   // Автодобавление 0 перед точкой если нужно
   if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
     expr += '0.';
