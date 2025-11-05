@@ -27,7 +27,6 @@ let readyForNewInput = false;
 let replaceLastNumber = false;
 let calculationInProgress = false;
 let errorState = false;
-// ФИКСАЦИЯ ПОРТРЕТНОЙ ОРИЕНТАЦИИ
 
 /* НАСТРОЙКИ - Загрузка и применение */
 function loadSettings() {
@@ -119,7 +118,6 @@ function resetSettingsToDefault() {
   localStorage.removeItem('calcSettings');
 }
 
-// Функции для применения настроек
 function applyButtonShape(shape) {
   const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
   buttons.forEach(btn => {
@@ -387,11 +385,6 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // Запрет сложных бессмысленных комбинаций
-  if (/[+−][+−]\d/.test(displayExpr)) {
-    return false;
-  }
-  
   return true;
 }
 
@@ -406,8 +399,11 @@ function sanitizeForCalc(displayExpr) {
     .replace(/\s/g, '');
 
   // ПРОФЕССИОНАЛЬНАЯ ЛОГИКА ПРОЦЕНТОВ
+  // Для + и -: процент от предыдущего числа
   s = s.replace(/(\d+(?:\.\d+)?)([\+\-])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
+  // Для × и ÷: процент как обычное число
   s = s.replace(/(\d+(?:\.\d+)?)([\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($3/100))');
+  // Одиночные проценты
   s = s.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
   
   s = s.replace(/[^0-9+\-*/().]/g, '');
@@ -446,87 +442,74 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа - ПОЛНАЯ ЗАЩИТА */
+/* Вставка символа с ПРОФЕССИОНАЛЬНОЙ ПРОВЕРКОЙ */
 function insertChar(ch) {
   if (errorState) {
     hideError();
   }
   
+  // СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с × или ÷
+  if (!expr && (ch === '×' || ch === '÷')) {
+    return;
+  }
+  
   const lastChar = expr.slice(-1);
   const ops = ['+', '−', '×', '÷'];
   
-// СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с операторов
-if (!expr && (ch === '×' || ch === '÷' || ch === '+')) {
-  return;
-}
   // После ( нельзя ставить × или ÷
   if (lastChar === '(' && (ch === '×' || ch === '÷')) {
     return;
   }
   
-  // Запрет унарного минуса после оператора (кроме начала)
+  // После унарного минуса нельзя ставить × или ÷
   if (lastChar === '−' && (ch === '×' || ch === '÷')) {
     return;
   }
   
-  // Запрет двух минусов подряд
-  if (ch === '−' && lastChar === '−') {
-    return;
-  }
+  // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
+  const potentialExpr = expr + ch;
   
-  // Запрет комбинаций -+ и +-
-  if ((lastChar === '−' && ch === '+') || (lastChar === '+' && ch === '−')) {
-    return;
-  }
-  
-  // СУПЕР ЗАЩИТА: Проверка всей комбинации при вводе
-  const newExpr = expr + ch;
-  // Запрет умножения/деления на -0 (после любого оператора)
-if ((ch === '×' || ch === '÷') && /[+−×÷]-0$/.test(expr)) {
-  return;
-}
   // Запрет деления на ноль при вводе
-  if (newExpr.includes('÷0') && !newExpr.includes('÷0.')) {
+  if (potentialExpr.match(/÷\s*-?\s*0/) && !potentialExpr.match(/÷\s*-?\s*0\./)) {
     return;
   }
   
-  // Запрет невалидных комбинаций операторов
-  if (/([+×÷])\1/.test(newExpr)) {
+  // Запрет невалидных комбинаций операторов при вводе
+  if (/([+×÷])\1/.test(potentialExpr)) {
     return;
   }
   
-  if (/[×÷][+×÷]/.test(newExpr)) {
+  if (/[×÷][+×÷]/.test(potentialExpr)) {
     return;
   }
   
-  // Запрет конструкций типа /-6/-9
-  if (/[×÷]-?\d+[×÷]/.test(newExpr)) {
+  // Запрет конструкций типа /-6/-9 при вводе
+  if (/[×÷]-?\d+[×÷]/.test(potentialExpr)) {
     return;
   }
   
-  // Запрет множественных унарных операторов
-  if (/[+−]{3,}/.test(newExpr)) {
-    return;
-  }
-  
-  // Обработка операторов
+  // Обработка операторов с разрешением унарных минусов
   if (ops.includes(lastChar) && ops.includes(ch)) {
     const operatorsMatch = expr.match(/[+−×÷]+$/);
     const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
+    const newSequence = currentOperators + ch;
     
-    // Максимум 2 оператора подряд
-    if (currentOperators.length >= 2) {
+    // Запрещаем последовательности из 3+ операторов
+    if (newSequence.length >= 3) {
       return;
     }
     
-    // Разрешаем только валидные комбинации
+    // Запрет множественных унарных минусов
+    if (currentOperators.includes('−') && ch === '−') {
+      return;
+    }
+    
     const validCombinations = ['+−', '−+', '×−', '÷−'];
     const currentCombination = lastChar + ch;
     
     if (validCombinations.includes(currentCombination)) {
       expr += ch;
     } else {
-      // Заменяем последний оператор
       expr = expr.slice(0, -1) + ch;
     }
   } 
@@ -565,14 +548,8 @@ function insertNumber(val) {
   
   // ПРОФЕССИОНАЛЬНАЯ АВТОТОЧКА ПОСЛЕ НУЛЯ
   if (val === '0' && lastNum === '0') {
+    // Если уже есть один ноль и вводим еще ноль - добавляем точку
     expr += '.';
-    renderScreen();
-    return;
-  }
-  
-  // Запрет ведущих нулей (кроме 0.xxx)
-  if (val !== '.' && lastNum === '0' && !lastNum.includes('.')) {
-    expr = expr.slice(0, -1) + val;
     renderScreen();
     return;
   }
@@ -683,6 +660,7 @@ function handleDelete() {
 /* Очистка - ПРОФЕССИОНАЛЬНАЯ С ВИЗУАЛЬНОЙ ОБРАТНОЙ СВЯЗЬЮ */
 function handleAllClear(longPress = false) {
   if (longPress) {
+    // Визуальная обратная связь при очистке истории
     screen.textContent = 'История очищена';
     screen.style.color = 'var(--accent)';
     
