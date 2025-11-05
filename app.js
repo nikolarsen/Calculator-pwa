@@ -118,6 +118,7 @@ function resetSettingsToDefault() {
   localStorage.removeItem('calcSettings');
 }
 
+// Функции для применения настроек
 function applyButtonShape(shape) {
   const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
   buttons.forEach(btn => {
