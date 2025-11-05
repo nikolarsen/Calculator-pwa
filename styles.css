@@ -355,3 +355,30 @@ html, body {
     transition-duration: 0s;
   }
 }
+/* Авто-масштабирование шрифта для длинных чисел */
+.screen.long-number {
+  font-size: 36px;
+}
+
+.screen.very-long-number {
+  font-size: 28px;
+}
+
+.screen.extremely-long-number {
+  font-size: 22px;
+}
+
+/* На маленьких экранах уменьшаем быстрее */
+@media (max-width: 420px) {
+  .screen.long-number {
+    font-size: 32px;
+  }
+  
+  .screen.very-long-number {
+    font-size: 24px;
+  }
+  
+  .screen.extremely-long-number {
+    font-size: 18px;
+  }
+}
