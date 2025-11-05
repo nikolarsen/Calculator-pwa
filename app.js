@@ -478,30 +478,35 @@ function insertChar(ch) {
     return;
   }
   
+  // СУПЕР ЗАЩИТА: Проверка всей комбинации при вводе
+  const newExpr = expr + ch;
+  
   // Запрет умножения/деления на -0
-  if ((ch === '×' || ch === '÷') && expr.endsWith('-0')) {
+  if ((ch === '×' || ch === '÷') && /-0$/.test(expr)) {
     return;
   }
-  
-  // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
-  const potentialExpr = expr + ch;
   
   // Запрет деления на ноль при вводе
-  if (potentialExpr.includes('÷0') && !potentialExpr.includes('÷0.')) {
+  if (newExpr.includes('÷0') && !newExpr.includes('÷0.')) {
     return;
   }
   
-  // Запрет невалидных комбинаций операторов при вводе
-  if (/([+×÷])\1/.test(potentialExpr)) {
+  // Запрет невалидных комбинаций операторов
+  if (/([+×÷])\1/.test(newExpr)) {
     return;
   }
   
-  if (/[×÷][+×÷]/.test(potentialExpr)) {
+  if (/[×÷][+×÷]/.test(newExpr)) {
     return;
   }
   
-  // Запрет конструкций типа /-6/-9 при вводе
-  if (/[×÷]-?\d+[×÷]/.test(potentialExpr)) {
+  // Запрет конструкций типа /-6/-9
+  if (/[×÷]-?\d+[×÷]/.test(newExpr)) {
+    return;
+  }
+  
+  // Запрет множественных унарных операторов
+  if (/[+−]{3,}/.test(newExpr)) {
     return;
   }
   
