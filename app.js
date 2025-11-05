@@ -449,7 +449,11 @@ function insertChar(ch) {
   if (lastChar === '(' && (ch === '×' || ch === '÷')) {
     return;
   }
-  
+  // ДОБАВИТЬ ЭТУ ПРОВЕРКУ:
+  // После унарного минуса нельзя ставить × или ÷
+  if (lastChar === '−' && (ch === '×' || ch === '÷')) {
+    return;
+  }
   // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
   const potentialExpr = expr + ch;
   
