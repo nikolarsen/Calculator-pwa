@@ -36,9 +36,6 @@ function lockPortraitOrientation() {
   }
 }
 
-// Попытка блокировки ориентации при загрузке
-lockPortraitOrientation();
-
 // Также блокируем при изменении ориентации
 window.addEventListener('orientationchange', lockPortraitOrientation);
 /* НАСТРОЙКИ - Загрузка и применение */
