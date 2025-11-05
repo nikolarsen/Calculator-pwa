@@ -14,6 +14,15 @@ const saveSettings = document.getElementById('saveSettings');
 const closeSettings = document.getElementById('closeSettings');
 const resetSettings = document.getElementById('resetSettings');
 
+// Новые элементы настроек
+const buttonShape = document.getElementById('buttonShape');
+const buttonSize = document.getElementById('buttonSize');
+const buttonOpacity = document.getElementById('buttonOpacity');
+const opacityValue = document.getElementById('opacityValue');
+const decimalPlaces = document.getElementById('decimalPlaces');
+const keyboardSounds = document.getElementById('keyboardSounds');
+const appIcons = document.querySelectorAll('input[name="appIcon"]');
+
 let expr = '';
 let readyForNewInput = false;
 let replaceLastNumber = false;
@@ -43,13 +52,49 @@ function loadSettings() {
     historyFontSize.value = settings.historyFontSize;
     historySizeValue.textContent = `${settings.historyFontSize}px`;
   }
+  
+  // Новые настройки
+  if (settings.buttonShape) {
+    buttonShape.value = settings.buttonShape;
+    applyButtonShape(settings.buttonShape);
+  }
+  
+  if (settings.buttonSize) {
+    buttonSize.value = settings.buttonSize;
+    applyButtonSize(settings.buttonSize);
+  }
+  
+  if (settings.buttonOpacity) {
+    buttonOpacity.value = settings.buttonOpacity;
+    opacityValue.textContent = `${settings.buttonOpacity}%`;
+    applyButtonOpacity(settings.buttonOpacity);
+  }
+  
+  if (settings.decimalPlaces) {
+    decimalPlaces.value = settings.decimalPlaces;
+  }
+  
+  if (settings.keyboardSounds) {
+    keyboardSounds.value = settings.keyboardSounds;
+  }
+  
+  if (settings.appIcon) {
+    document.querySelector(`input[name="appIcon"][value="${settings.appIcon}"]`).checked = true;
+    applyAppIcon(settings.appIcon);
+  }
 }
 
 function saveSettingsToStorage() {
   const settings = {
     theme: themeSelect.value,
     screenFontSize: parseInt(screenFontSize.value),
-    historyFontSize: parseInt(historyFontSize.value)
+    historyFontSize: parseInt(historyFontSize.value),
+    buttonShape: buttonShape.value,
+    buttonSize: buttonSize.value,
+    buttonOpacity: parseInt(buttonOpacity.value),
+    decimalPlaces: decimalPlaces.value,
+    keyboardSounds: keyboardSounds.value,
+    appIcon: document.querySelector('input[name="appIcon"]:checked').value
   };
   
   localStorage.setItem('calcSettings', JSON.stringify(settings));
@@ -67,14 +112,73 @@ function applySettings() {
   // Размер шрифта истории
   historyEl.style.fontSize = `${historyFontSize.value}px`;
   historySizeValue.textContent = `${historyFontSize.value}px`;
+  
+  // Новые настройки
+  applyButtonShape(buttonShape.value);
+  applyButtonSize(buttonSize.value);
+  applyButtonOpacity(buttonOpacity.value);
+  applyAppIcon(document.querySelector('input[name="appIcon"]:checked').value);
 }
 
 function resetSettingsToDefault() {
   themeSelect.value = 'dark';
   screenFontSize.value = '52';
   historyFontSize.value = '22';
+  buttonShape.value = 'rounded';
+  buttonSize.value = 'standard';
+  buttonOpacity.value = '85';
+  decimalPlaces.value = '10';
+  keyboardSounds.value = 'off';
+  document.querySelector('input[name="appIcon"][value="default"]').checked = true;
+  
   applySettings();
   localStorage.removeItem('calcSettings');
+}
+
+// Новые функции для применения настроек
+function applyButtonShape(shape) {
+  const buttons = document.querySelectorAll('.btn');
+  buttons.forEach(btn => {
+    btn.classList.remove('btn-shape-rounded', 'btn-shape-square', 'btn-shape-circle');
+    btn.classList.add(`btn-shape-${shape}`);
+  });
+}
+
+function applyButtonSize(size) {
+  const buttons = document.querySelectorAll('.btn');
+  buttons.forEach(btn => {
+    btn.classList.remove('btn-size-compact', 'btn-size-standard', 'btn-size-large');
+    btn.classList.add(`btn-size-${size}`);
+  });
+}
+
+function applyButtonOpacity(opacity) {
+  const buttons = document.querySelectorAll('.btn');
+  buttons.forEach(btn => {
+    btn.style.opacity = `${opacity}%`;
+  });
+}
+
+function applyAppIcon(icon) {
+  const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+  link.type = 'image/x-icon';
+  link.rel = 'shortcut icon';
+  
+  switch(icon) {
+    case 'modern':
+      link.href = './icons/icon-modern.png';
+      break;
+    case 'science':
+      link.href = './icons/icon-science.png';
+      break;
+    case 'simple':
+      link.href = './icons/icon-simple.png';
+      break;
+    default:
+      link.href = './icons/icon-192.png';
+  }
+  
+  document.head.appendChild(link);
 }
 
 // Обработчики событий для настроек
@@ -84,6 +188,10 @@ screenFontSize.addEventListener('input', function() {
 
 historyFontSize.addEventListener('input', function() {
   historySizeValue.textContent = `${this.value}px`;
+});
+
+buttonOpacity.addEventListener('input', function() {
+  opacityValue.textContent = `${this.value}%`;
 });
 
 settingsBtn.addEventListener('click', () => {
@@ -136,7 +244,6 @@ function loadHistory() {
   }
 }
 
-/* Отображение с доступностью */
 /* Умное форматирование чисел для экрана */
 function formatDisplayValue(value) {
   if (!value || value === '0') return '0';
@@ -314,10 +421,13 @@ function safeEval(displayExpr) {
     if (Math.abs(result) > 1e15) return null;
     if (Math.abs(result) < 1e-15 && result !== 0) return 0;
     
+    const decimalPlacesValue = parseInt(decimalPlaces.value) || 10;
+    
     if (Number.isInteger(result)) {
       return result;
     } else {
-      return parseFloat(result.toFixed(10));
+      // Используем настройку пользователя для округления
+      return parseFloat(result.toFixed(decimalPlacesValue));
     }
   } catch (error) {
     return null;
@@ -497,13 +607,36 @@ function handleDelete() {
 function handleAllClear(longPress = false) {
   if (longPress) {
     historyEl.innerHTML = '';
-    localStorage.removeItem('calcHistory'); // Очищаем сохраненную историю
+    localStorage.removeItem('calcHistory');
   }
   expr = '';
   readyForNewInput = false;
   replaceLastNumber = false;
   hideError();
   renderScreen();
+}
+
+/* Функция для воспроизведения звука */
+function playKeySound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  } catch (error) {
+    console.log('Audio not supported');
+  }
 }
 
 /* Обработка кликов по кнопкам */
@@ -516,6 +649,11 @@ keys.addEventListener('click', (e) => {
 
   // Вибрация если поддерживается
   if (navigator.vibrate) navigator.vibrate(10);
+  
+  // Звук если включен
+  if (keyboardSounds.value === 'on') {
+    playKeySound();
+  }
 
   if (action) {
     switch (action) {
@@ -634,11 +772,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* Инициализация */
-renderScreen();
-loadHistory(); // Загружаем историю при запуске
-loadSettings(); // Загружаем настройки при запуске
-// Проверка обновлений
+/* Проверка обновлений */
 function checkForUpdates() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready.then(registration => {
@@ -647,14 +781,14 @@ function checkForUpdates() {
   }
 }
 
-// Уведомление об обновлении
+/* Уведомление об обновлении */
 function showUpdateNotification() {
   if (confirm('Доступна новая версия калькулятора. Обновить?')) {
     window.location.reload();
   }
 }
 
-// Слушаем сообщения от Service Worker
+/* Слушаем сообщения от Service Worker */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', event => {
     if (event.data.type === 'UPDATE_AVAILABLE') {
@@ -663,6 +797,11 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Проверяем обновления при загрузке и раз в день
+/* Инициализация */
+renderScreen();
+loadHistory();
+loadSettings();
+
+/* Проверяем обновления при загрузке и раз в день */
 checkForUpdates();
-setInterval(checkForUpdates, 24 * 60 * 60 * 1000); // Раз в день
+setInterval(checkForUpdates, 24 * 60 * 60 * 1000);
