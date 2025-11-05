@@ -447,7 +447,7 @@ html, body {
     transition-duration: 0s;
   }
 }
-/* ЭКСТРЕННОЕ ИСПРАВЛЕНИЕ ФОРМ КНОПОК */
+/* ЭКСТРЕННОЕ ИСПРАВЛЕНИЕ ФОРМ КНОПОК - ОБНОВЛЕННОЕ */
 .btn-shape-rounded {
   border-radius: 12px !important;
 }
@@ -456,29 +456,69 @@ html, body {
   border-radius: 4px !important;
 }
 
+/* ОСОБЫЕ СТИЛИ ДЛЯ КРУГЛЫХ КНОПОК */
 .btn-shape-circle {
   border-radius: 50% !important;
   aspect-ratio: 1 / 1 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  width: auto !important;
+  height: auto !important;
 }
 
-/* ЭКСТРЕННОЕ ИСПРАВЛЕНИЕ РАЗМЕРОВ */
-.btn-size-compact {
-  padding: 12px 8px !important;
-  font-size: 18px !important;
-  min-height: 50px !important;
+/* Круглые кнопки с разными размерами */
+.btn-size-compact.btn-shape-circle {
+  padding: 12px !important;
+  font-size: 16px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
 }
 
-.btn-size-standard {
-  padding: 16px 10px !important;
+.btn-size-standard.btn-shape-circle {
+  padding: 16px !important;
   font-size: 20px !important;
-  min-height: 60px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
 }
 
-.btn-size-large {
-  padding: 20px 14px !important;
+.btn-size-large.btn-shape-circle {
+  padding: 20px !important;
   font-size: 24px !important;
-  min-height: 70px !important;
+  min-width: 68px !important;
+  min-height: 68px !important;
+}
+
+/* КНОПКИ В НАСТРОЙКАХ - ВСЕГДА СКРУГЛЕННЫЕ */
+.settings-buttons .btn {
+  border-radius: 8px !important;
+  aspect-ratio: auto !important;
+  min-width: auto !important;
+  min-height: auto !important;
+  padding: 12px !important;
+  font-size: 16px !important;
+}
+
+/* Адаптивность для круглых кнопок */
+@media (max-width: 420px) {
+  .btn-size-compact.btn-shape-circle {
+    padding: 10px !important;
+    font-size: 14px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+  
+  .btn-size-standard.btn-shape-circle {
+    padding: 14px !important;
+    font-size: 18px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+  
+  .btn-size-large.btn-shape-circle {
+    padding: 16px !important;
+    font-size: 20px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+  }
 }
