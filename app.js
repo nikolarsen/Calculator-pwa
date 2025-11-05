@@ -571,3 +571,31 @@ document.addEventListener('keydown', (e) => {
 renderScreen();
 loadHistory(); // Загружаем историю при запуске
 loadSettings(); // Загружаем настройки при запуске
+// Проверка обновлений
+function checkForUpdates() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(registration => {
+      registration.active.postMessage({ type: 'CHECK_UPDATES' });
+    });
+  }
+}
+
+// Уведомление об обновлении
+function showUpdateNotification() {
+  if (confirm('Доступна новая версия калькулятора. Обновить?')) {
+    window.location.reload();
+  }
+}
+
+// Слушаем сообщения от Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data.type === 'UPDATE_AVAILABLE') {
+      showUpdateNotification();
+    }
+  });
+}
+
+// Проверяем обновления при загрузке и раз в день
+checkForUpdates();
+setInterval(checkForUpdates, 24 * 60 * 60 * 1000); // Раз в день
