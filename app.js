@@ -32,27 +32,23 @@ let errorState = false;
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem('calcSettings')) || {};
   
-  // Применяем тему
   if (settings.theme) {
     document.body.className = `theme-${settings.theme}`;
     themeSelect.value = settings.theme;
   }
   
-  // Применяем размер шрифта экрана
   if (settings.screenFontSize) {
     screen.style.fontSize = `${settings.screenFontSize}px`;
     screenFontSize.value = settings.screenFontSize;
     screenSizeValue.textContent = `${settings.screenFontSize}px`;
   }
   
-  // Применяем размер шрифта истории
   if (settings.historyFontSize) {
     historyEl.style.fontSize = `${settings.historyFontSize}px`;
     historyFontSize.value = settings.historyFontSize;
     historySizeValue.textContent = `${settings.historyFontSize}px`;
   }
   
-  // Новые настройки
   if (settings.buttonShape) {
     buttonShape.value = settings.buttonShape;
     applyButtonShape(settings.buttonShape);
@@ -95,18 +91,14 @@ function saveSettingsToStorage() {
 }
 
 function applySettings() {
-  // Тема
   document.body.className = `theme-${themeSelect.value}`;
   
-  // Размер шрифта экрана
   screen.style.fontSize = `${screenFontSize.value}px`;
   screenSizeValue.textContent = `${screenFontSize.value}px`;
   
-  // Размер шрифта истории
   historyEl.style.fontSize = `${historyFontSize.value}px`;
   historySizeValue.textContent = `${historyFontSize.value}px`;
   
-  // Новые настройки
   applyButtonShape(buttonShape.value);
   applyButtonSize(buttonSize.value);
   applyButtonOpacity(buttonOpacity.value);
@@ -126,7 +118,6 @@ function resetSettingsToDefault() {
   localStorage.removeItem('calcSettings');
 }
 
-// Функции для применения настроек
 function applyButtonShape(shape) {
   const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
   buttons.forEach(btn => {
@@ -150,7 +141,6 @@ function applyButtonOpacity(opacity) {
   });
 }
 
-// Обработчики событий для настроек
 screenFontSize.addEventListener('input', function() {
   screenSizeValue.textContent = `${this.value}px`;
 });
@@ -217,7 +207,6 @@ function loadHistory() {
 function formatDisplayValue(value) {
   if (!value || value === '0') return '0';
   
-  // Если это не число (выражение), не форматируем
   if (/[+−×÷()%]/.test(value)) {
     return value;
   }
@@ -229,31 +218,25 @@ function formatDisplayValue(value) {
     const absNum = Math.abs(num);
     const strNum = value.toString();
     
-    // Если число слишком длинное
     if (strNum.length > 12) {
-      // Очень большие числа
       if (absNum >= 1e12) {
         return num.toExponential(6).replace('e', 'E');
       }
       
-      // Очень маленькие числа
       if (absNum > 0 && absNum < 1e-6) {
         return num.toExponential(6).replace('e', 'E');
       }
       
-      // Числа с длинной дробной частью
       if (strNum.includes('.')) {
         const [integer, decimal] = strNum.split('.');
         if (integer.length > 8) {
           return num.toExponential(6).replace('e', 'E');
         }
-        // Ограничиваем дробную часть
         if (decimal.length > 8) {
           return parseFloat(num.toFixed(8)).toString();
         }
       }
       
-      // Обычные длинные числа - округляем
       return parseFloat(num.toFixed(10)).toString();
     }
     
@@ -267,13 +250,10 @@ function formatDisplayValue(value) {
 function renderScreen() {
   let displayValue = expr || '0';
   
-  // Форматируем значение для отображения
   displayValue = formatDisplayValue(displayValue);
   
-  // Убираем предыдущие классы размера
   screen.className = 'screen';
   
-  // Динамически меняем размер шрифта в зависимости от длины
   if (displayValue.length > 20) {
     screen.classList.add('extremely-long-number');
   } else if (displayValue.length > 15) {
@@ -309,16 +289,14 @@ function addHistoryItem(input, result) {
   
   historyEl.prepend(el);
 
-  // Ограничение истории
   while (historyEl.children.length > 50) {
     historyEl.removeChild(historyEl.lastChild);
   }
   
-  // Сохраняем историю после добавления
   saveHistory();
 }
 
-/* Проверка синтаксиса */
+/* Проверка синтаксиса - СУПЕР ЗАЩИТА */
 function validateExpression(displayExpr) {
   if (!displayExpr) return false;
   
@@ -327,16 +305,18 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // Проверка на деление на ноль
-  if (displayExpr.includes('÷0') && !displayExpr.includes('÷0.')) {
-    // Разрешаем ÷0.5 но запрещаем ÷0
-    const parts = displayExpr.split('÷0');
-    if (parts.length > 1) {
-      const afterZero = parts[1];
-      if (!afterZero || afterZero.startsWith(')') || /[+−×÷]/.test(afterZero[0])) {
-        return false;
+  // Строгая проверка на деление на ноль
+  if (displayExpr.match(/÷\s*-?\s*0/)) {
+    const zeroDivisionMatches = displayExpr.match(/÷\s*(-?\s*0[^.]?)/g);
+    if (zeroDivisionMatches) {
+      for (const match of zeroDivisionMatches) {
+        const afterZero = match.replace(/÷\s*(-?\s*0)/, '');
+        if (afterZero && !afterZero.startsWith('.') && !/[)+×÷]/.test(afterZero[0])) {
+          return false;
+        }
       }
     }
+    return false;
   }
   
   // Проверка на двойные операторы в конце
@@ -349,10 +329,71 @@ function validateExpression(displayExpr) {
     return false;
   }
   
+  // После ( нельзя ставить × или ÷
+  if (displayExpr.includes('(×') || displayExpr.includes('(÷')) {
+    return false;
+  }
+  
+  // Проверка на незакрытые скобки
+  const open = (displayExpr.match(/\(/g) || []).length;
+  const close = (displayExpr.match(/\)/g) || []).length;
+  if (open !== close) {
+    return false;
+  }
+  
+  // Запрет невалидных комбинаций операторов
+  if (/([+×÷])\1/.test(displayExpr)) {
+    return false;
+  }
+  
+  if (/[×÷][+×÷]/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Запрет тройных операторов
+  if (/[+−×÷]{3,}/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Запрет операторов в конце
+  if (/[+×÷]$/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Запрет конструкций типа /-6/-9
+  if (/[×÷]-?\d+[×÷]/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Запрет двух операторов деления/умножения с минусом между ними
+  if (/[×÷]-[×÷]/.test(displayExpr)) {
+    return false;
+  }
+  
+  // Запрет бессмысленных выражений с множественными нулями
+  if (/[×÷]-?0[×÷]-?0/.test(displayExpr)) {
+    return false;
+  }
+  
+  // СУПЕР ЗАЩИТА: Запрет множественных унарных минусов
+  if (/−−\d/.test(displayExpr)) {
+    return false;
+  }
+  
+  // СУПЕР ЗАЩИТА: Запрет ведущих нулей
+  if (/\D0\d/.test(displayExpr)) {
+    return false;
+  }
+  
+  // СУПЕР ЗАЩИТА: Запрет сложных бессмысленных комбинаций
+  if (/[+−][+−]\d/.test(displayExpr)) {
+    return false;
+  }
+  
   return true;
 }
 
-/* Подготовка выражения */
+/* Подготовка выражения - ПРОФЕССИОНАЛЬНЫЕ ПРОЦЕНТЫ */
 function sanitizeForCalc(displayExpr) {
   if (!displayExpr) return '';
   
@@ -362,9 +403,11 @@ function sanitizeForCalc(displayExpr) {
     .replace(/−/g, '-')
     .replace(/\s/g, '');
 
-  // Обработка процентов
-  s = s.replace(/(\d+(?:\.\d+)?)([\+\-\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
+  // ПРОФЕССИОНАЛЬНАЯ ЛОГИКА ПРОЦЕНТОВ
+  s = s.replace(/(\d+(?:\.\d+)?)([\+\-])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
+  s = s.replace(/(\d+(?:\.\d+)?)([\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($3/100))');
   s = s.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+  
   s = s.replace(/[^0-9+\-*/().]/g, '');
   
   return s;
@@ -386,7 +429,6 @@ function safeEval(displayExpr) {
       return null;
     }
     
-    // Обработка очень больших/маленьких чисел
     if (Math.abs(result) > 1e15) return null;
     if (Math.abs(result) < 1e-15 && result !== 0) return 0;
     
@@ -395,7 +437,6 @@ function safeEval(displayExpr) {
     if (Number.isInteger(result)) {
       return result;
     } else {
-      // Используем настройку пользователя для округления
       return parseFloat(result.toFixed(decimalPlacesValue));
     }
   } catch (error) {
@@ -403,39 +444,80 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа с проверками */
+/* Вставка символа - СУПЕР ЗАЩИТА */
 function insertChar(ch) {
   if (errorState) {
     hideError();
   }
   
-  // Автоматическое упрощение чисел вида 0.0, 5.0 перед оператором
-  if (['+', '−', '×', '÷'].includes(ch)) {
-    // Ищем последнее число в выражении
-    const numbers = expr.match(/(\d+\.\d*0*)$/);
-    if (numbers) {
-      const lastNum = numbers[1];
-      // Если число заканчивается на .0 или .00 и т.д., упрощаем его
-      if (lastNum.includes('.') && /\.0+$/.test(lastNum)) {
-        const simplifiedNum = lastNum.replace(/\.0+$/, '');
-        expr = expr.slice(0, -lastNum.length) + simplifiedNum;
-      }
-    }
+  // СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с × или ÷
+  if (!expr && (ch === '×' || ch === '÷')) {
+    return;
   }
   
   const lastChar = expr.slice(-1);
   const ops = ['+', '−', '×', '÷'];
   
-  // Запрет начала с × или ÷
-  if (!expr && (ch === '×' || ch === '÷')) {
+  // После ( нельзя ставить × или ÷
+  if (lastChar === '(' && (ch === '×' || ch === '÷')) {
     return;
   }
   
-  // Запрет двойных операторов
+  // СУПЕР ЗАЩИТА: После унарного минуса нельзя ставить × или ÷
+  if (lastChar === '−' && (ch === '×' || ch === '÷')) {
+    return;
+  }
+  
+  // СУПЕР ЗАЩИТА: Запрет множественных унарных минусов
+  if (lastChar === '−' && ch === '−' && expr.length > 1) {
+    const prevChar = expr.slice(-2, -1);
+    if (ops.includes(prevChar) || prevChar === '(') {
+      return; // Запрещаем второй унарный минус подряд
+    }
+  }
+  
+  // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
+  const potentialExpr = expr + ch;
+  
+  // Запрет деления на ноль при вводе
+  if (potentialExpr.match(/÷\s*-?\s*0/) && !potentialExpr.match(/÷\s*-?\s*0\./)) {
+    return;
+  }
+  
+  // Запрет невалидных комбинаций операторов при вводе
+  if (/([+×÷])\1/.test(potentialExpr)) {
+    return;
+  }
+  
+  if (/[×÷][+×÷]/.test(potentialExpr)) {
+    return;
+  }
+  
+  // Запрет конструкций типа /-6/-9 при вводе
+  if (/[×÷]-?\d+[×÷]/.test(potentialExpr)) {
+    return;
+  }
+  
+  // Обработка операторов с разрешением унарных минусов
   if (ops.includes(lastChar) && ops.includes(ch)) {
-    expr = expr.slice(0, -1) + ch;
+    const operatorsMatch = expr.match(/[+−×÷]+$/);
+    const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
+    const newSequence = currentOperators + ch;
+    
+    // СУПЕР ЗАЩИТА: Максимум 2 оператора подряд
+    if (newSequence.length >= 3) {
+      return;
+    }
+    
+    const validCombinations = ['+−', '−+', '×−', '÷−', '−−'];
+    const currentCombination = lastChar + ch;
+    
+    if (validCombinations.includes(currentCombination)) {
+      expr += ch;
+    } else {
+      expr = expr.slice(0, -1) + ch;
+    }
   } 
-  // Добавление оператора после результата
   else if (readyForNewInput && ops.includes(ch)) {
     expr += ch;
     readyForNewInput = false;
@@ -448,13 +530,14 @@ function insertChar(ch) {
   renderScreen();
 }
 
-/* Обработка чисел с проверками */
+/* Обработка чисел с ПРОФЕССИОНАЛЬНОЙ АВТОТОЧКОЙ */
 function insertNumber(val) {
   if (errorState) {
     hideError();
   }
   
-  if (readyForNewInput) {
+  // ЕСЛИ readyForNewInput И НЕТ ОПЕРАТОРА - очищаем выражение
+  if (readyForNewInput && !/[+−×÷]$/.test(expr)) {
     expr = '';
     readyForNewInput = false;
   } else if (replaceLastNumber) {
@@ -468,6 +551,13 @@ function insertNumber(val) {
   // Запрет множественных точек
   if (val === '.' && lastNum.includes('.')) return;
   
+  // ПРОФЕССИОНАЛЬНАЯ АВТОТОЧКА ПОСЛЕ НУЛЯ
+  if (val === '0' && lastNum === '0') {
+    expr += '.';
+    renderScreen();
+    return;
+  }
+  
   // Автодобавление 0 перед точкой если нужно
   if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
     expr += '0.';
@@ -475,6 +565,7 @@ function insertNumber(val) {
     expr += val;
   }
   
+  readyForNewInput = false;
   renderScreen();
 }
 
@@ -490,14 +581,12 @@ function handleEquals() {
     if (result === null) {
       showError();
       
-      // Автоматически убираем ноль при делении на ноль
       if (expr.includes('÷0') && !expr.includes('÷0.')) {
         expr = expr.replace(/÷0$/, '÷').replace(/÷0([+−×÷)])/, '÷$1');
       }
       
       renderScreen();
     } else {
-      // Форматирование результата
       let displayResult;
       if (Number.isInteger(result)) {
         displayResult = result.toString();
@@ -572,17 +661,26 @@ function handleDelete() {
   }
 }
 
-/* Очистка */
+/* Очистка - ПРОФЕССИОНАЛЬНАЯ С ВИЗУАЛЬНОЙ ОБРАТНОЙ СВЯЗЬЮ */
 function handleAllClear(longPress = false) {
   if (longPress) {
-    historyEl.innerHTML = '';
-    localStorage.removeItem('calcHistory');
+    screen.textContent = 'История очищена';
+    screen.style.color = 'var(--accent)';
+    
+    setTimeout(() => {
+      historyEl.innerHTML = '';
+      localStorage.removeItem('calcHistory');
+      expr = '';
+      hideError();
+      renderScreen();
+    }, 800);
+  } else {
+    expr = '';
+    readyForNewInput = false;
+    replaceLastNumber = false;
+    hideError();
+    renderScreen();
   }
-  expr = '';
-  readyForNewInput = false;
-  replaceLastNumber = false;
-  hideError();
-  renderScreen();
 }
 
 /* Упрощенная вибрация для мобильных */
@@ -600,7 +698,6 @@ keys.addEventListener('click', (e) => {
   const val = btn.dataset.value;
   const action = btn.dataset.action;
 
-  // Вибрация если поддерживается
   vibrate();
 
   if (action) {
@@ -643,12 +740,25 @@ historyEl.addEventListener('click', (e) => {
   try {
     const text = line.textContent.split('=')[1].trim();
     const lastChar = expr.slice(-1);
-    const ops = ['+', '−', '×', '÷', '(', ')'];
+    const ops = ['+', '−', '×', '÷'];
     
-    if (expr && !ops.includes(lastChar)) {
-      expr = expr.replace(/([0-9.]+)$/, text);
-    } else {
-      expr += text;
+    if (!expr || ops.includes(lastChar) || lastChar === '(') {
+      if (text.startsWith('−') && !expr) {
+        expr = text;
+      }
+      else if (text.startsWith('−') && ops.includes(lastChar)) {
+        expr += `(${text})`;
+      }
+      else {
+        expr += text;
+      }
+    }
+    else {
+      if (text.startsWith('−')) {
+        expr = expr.replace(/([0-9.]+)$/, `(${text})`);
+      } else {
+        expr = expr.replace(/([0-9.]+)$/, text);
+      }
     }
     
     replaceLastNumber = true;
@@ -725,84 +835,4 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   loadHistory();
   renderScreen();
-});
-const CACHE_NAME = 'calc-pwa-v4';
-const CACHE_FILES = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon-180.png'
-];
-
-// Установка и кэширование
-self.addEventListener('install', event => {
-  console.log('[ServiceWorker] Установка...');
-  
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('[ServiceWorker] Кэширование файлов...');
-        return Promise.all(
-          CACHE_FILES.map(url => {
-            return cache.add(url).catch(error => {
-              console.log(`[ServiceWorker] Ошибка кэширования ${url}:`, error);
-            });
-          })
-        );
-      })
-      .then(() => {
-        console.log('[ServiceWorker] Все файлы закэшированы');
-        return self.skipWaiting();
-      })
-  );
-});
-
-// Активация - очистка старых кэшей
-self.addEventListener('activate', event => {
-  console.log('[ServiceWorker] Активация...');
-  
-  event.waitUntil(
-    caches.keys()
-      .then(keys => {
-        return Promise.all(
-          keys.map(key => {
-            if (key !== CACHE_NAME) {
-              console.log('[ServiceWorker] Удаляю старый кэш:', key);
-              return caches.delete(key);
-            }
-          })
-        );
-      })
-      .then(() => {
-        console.log('[ServiceWorker] Активен');
-        return self.clients.claim();
-      })
-  );
-});
-
-// Простая стратегия кэширования для мобильных
-self.addEventListener('fetch', event => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      caches.match('./index.html')
-        .then(cached => cached || fetch(event.request))
-    );
-    return;
-  }
-  
-  event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request))
-  );
-});
-
-// Обработка сообщений от главного потока
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
