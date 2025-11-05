@@ -183,11 +183,11 @@ html, body {
     max-width: 100%;
   }
   .screen { 
-    font-size: 44px; /* Было 36px */
+    font-size: 48px; /* Было 36px */
     min-height: 60px;
   }
   .history {
-    font-size: 20px; /* Было 16px */
+    font-size: 36px; /* Было 16px */
   }
   .btn { 
     padding: 18px 10px; 
