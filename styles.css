@@ -28,25 +28,35 @@ html, body {
   transform-origin: center;
 }
 
-/* ЖЕСТКАЯ ФИКСАЦИЯ ПОРТРЕТНОЙ ОРИЕНТАЦИИ */
+/* СООБЩЕНИЕ О ЛАНДШАФТНОЙ ОРИЕНТАЦИИ */
+#landscape-warning {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  z-index: 10000;
+  font-size: 24px;
+  text-align: center;
+  padding: 20px;
+}
+
 @media (orientation: landscape) and (max-height: 800px) {
-  body {
-    transform: rotate(-90deg) !important;
-    transform-origin: left top !important;
-    width: 100vh !important;
-    height: 100vw !important;
-    overflow-x: hidden !important;
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
+  .calculator,
+  .settings-btn {
+    display: none !important;
   }
   
-  .calculator {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: none !important;
-    padding: 20px !important;
+  #landscape-warning {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
+}
   
   .settings-btn {
     transform: rotate(90deg) !important;
