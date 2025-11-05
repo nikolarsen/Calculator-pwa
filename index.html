@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Простой и удобный калькулятор с историей вычислений">
-  <title>Калькулятор</title>
+  <title>🧮 Калькулятор</title>
 
   <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -100,30 +100,7 @@
         </select>
       </div>
       
-      <!-- Иконка приложения -->
-      <div class="setting-group">
-        <label>Иконка приложения:</label>
-        <div class="icon-options">
-          <label class="icon-option">
-            <input type="radio" name="appIcon" value="default" checked>
-            <div class="icon-preview">🧮</div>
-          </label>
-          <label class="icon-option">
-            <input type="radio" name="appIcon" value="modern">
-            <div class="icon-preview">🔢</div>
-          </label>
-          <label class="icon-option">
-            <input type="radio" name="appIcon" value="science">
-            <div class="icon-preview">⚛️</div>
-          </label>
-          <label class="icon-option">
-            <input type="radio" name="appIcon" value="simple">
-            <div class="icon-preview">➗</div>
-          </label>
-        </div>
-      </div>
-      
-      <!-- Кнопки -->
+      <!-- Кнопки настроек -->
       <div class="settings-buttons">
         <button class="btn" id="saveSettings">Сохранить</button>
         <button class="btn" id="closeSettings">Закрыть</button>
@@ -175,11 +152,10 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js')
         .then(registration => {
-          console.log('SW registered: ', registration);
-          registration.update();
+          console.log('SW registered');
         })
-        .catch(registrationError => {
-          console.log('SW registration failed: ', registrationError);
+        .catch(error => {
+          console.log('SW registration failed: ', error);
         });
     }
   </script>
