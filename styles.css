@@ -25,65 +25,49 @@ html, body {
   overflow: hidden;
 }
 /* Кнопка настроек */
-/* Кнопка настроек - полный сброс стилей */
+/* Кнопка настроек - исправленная версия */
 .settings-btn {
   /* Позиционирование */
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  z-index: 1000;
+  position: fixed !important;
+  top: 15px !important;
+  right: 15px !important;
+  z-index: 1000 !important;
   
   /* Размеры */
-  width: 44px;
-  height: 44px;
+  width: 44px !important;
+  height: 44px !important;
   
-  /* Полный сброс браузерных стилей */
-  all: unset;
-  box-sizing: border-box;
+  /* Основные стили */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(45, 45, 45, 0.9) !important;
+  border-radius: 50% !important;
+  font-size: 20px !important;
+  color: var(--text) !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.3s ease !important;
   
-  /* Кастомные стили */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(45, 45, 45, 0.9);
-  border-radius: 50%;
-  font-size: 20px;
-  color: var(--text);
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  
-  /* Жесткое отключение всех обводок */
-  border: 0 !important;
-  outline: 0 !important;
+  /* Убираем обводки */
+  border: none !important;
+  outline: none !important;
   box-shadow: none !important;
-  text-decoration: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
-/* Убираем все состояния */
-.settings-btn:hover,
-.settings-btn:active,
-.settings-btn:focus,
-.settings-btn:visited {
-  border: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-  background: rgba(60, 60, 60, 0.9);
-  transform: scale(1.1);
+.settings-btn:hover {
+  background: rgba(60, 60, 60, 0.9) !important;
+  transform: scale(1.1) !important;
 }
 
-/* Особые фиксы для разных браузеров */
+/* Фиксы для браузеров */
 .settings-btn::-moz-focus-inner {
   border: 0 !important;
-  padding: 0 !important;
 }
 
-.settings-btn:-webkit-any-link {
-  text-decoration: none !important;
-}
-
-.settings-btn:-webkit-any-link:focus {
-  outline: 0 !important;
+.settings-btn:focus {
+  outline: none !important;
 }
 
 /* Модальное окно настроек */
@@ -558,27 +542,4 @@ html, body {
   .settings-btn {
     backdrop-filter: none;
   }
-}
-
-/* Фикс для :active на мобильных */
-@media (hover: none) and (pointer: coarse) {
-  .btn:active {
-    transform: scale(0.96) translateZ(0);
-    transition-duration: 0s;
-  }
-}
-/* ФИКС ДЛЯ ОБВОДКИ КНОПКИ НАСТРОЕК */
-button.settings-btn {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Для Яндекс Браузера и Safari */
-button.settings-btn::-moz-focus-inner {
-  border: 0 !important;
-}
-
-button.settings-btn:-moz-focusring {
-  outline: none !important;
 }
