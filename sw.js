@@ -222,13 +222,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// ✅ Фоновая синхронизация для обновлений
-self.addEventListener('sync', event => {
-  if (event.tag === 'update-check') {
-    console.log('[ServiceWorker] Фоновая проверка обновлений');
-    event.waitUntil(checkForUpdates());
-  }
-});
+
 
 async function checkForUpdates() {
   try {
@@ -277,10 +271,3 @@ self.addEventListener('message', event => {
   }
 });
 
-// ✅ Периодическая фоновая синхронизация
-self.addEventListener('periodicsync', event => {
-  if (event.tag === 'background-update') {
-    console.log('[ServiceWorker] Периодическая проверка обновлений');
-    event.waitUntil(checkForUpdates());
-  }
-});
