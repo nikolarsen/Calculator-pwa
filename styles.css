@@ -31,7 +31,7 @@ html, body {
   top: 15px;
   right: 15px;
   background: rgba(45, 45, 45, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
   border-radius: 50%;
   width: 44px;
   height: 44px;
