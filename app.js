@@ -296,7 +296,7 @@ function addHistoryItem(input, result) {
   saveHistory();
 }
 
-/* Проверка синтаксиса - СУПЕР ЗАЩИТА */
+/* Проверка синтаксиса - ПОЛНАЯ ЗАЩИТА */
 function validateExpression(displayExpr) {
   if (!displayExpr) return false;
   
@@ -375,17 +375,17 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // СУПЕР ЗАЩИТА: Запрет множественных унарных минусов
+  // Запрет множественных унарных минусов
   if (/−−\d/.test(displayExpr)) {
     return false;
   }
   
-  // СУПЕР ЗАЩИТА: Запрет ведущих нулей
+  // Запрет ведущих нулей
   if (/\D0\d/.test(displayExpr)) {
     return false;
   }
   
-  // СУПЕР ЗАЩИТА: Запрет сложных бессмысленных комбинаций
+  // Запрет сложных бессмысленных комбинаций
   if (/[+−][+−]\d/.test(displayExpr)) {
     return false;
   }
@@ -444,46 +444,50 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа - СУПЕР ЗАЩИТА */
+/* Вставка символа - ПОЛНАЯ ЗАЩИТА */
 function insertChar(ch) {
   if (errorState) {
     hideError();
   }
+  
+  const lastChar = expr.slice(-1);
+  const ops = ['+', '−', '×', '÷'];
   
   // СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с × или ÷
   if (!expr && (ch === '×' || ch === '÷')) {
     return;
   }
   
-  const lastChar = expr.slice(-1);
-  const ops = ['+', '−', '×', '÷'];
-  
   // После ( нельзя ставить × или ÷
   if (lastChar === '(' && (ch === '×' || ch === '÷')) {
     return;
   }
   
-  // СУПЕР ЗАЩИТА: После унарного минуса нельзя ставить × или ÷
+  // Запрет унарного минуса после оператора (кроме начала)
   if (lastChar === '−' && (ch === '×' || ch === '÷')) {
     return;
   }
-// СУПЕР ЗАЩИТА: Простой запрет двух минусов подряд
-if (ch === '−' && lastChar === '−') {
-  return;
-}
-  // СУПЕР ЗАЩИТА: Запрет комбинаций -+ и +-
-if ((lastChar === '−' && ch === '+') || (lastChar === '+' && ch === '−')) {
-  return;
-}
-  // СУПЕР ЗАЩИТА: Запрет умножения/деления на ноль при вводе
-if ((ch === '×' || ch === '÷') && expr.endsWith('-0')) {
-  return;
-}
+  
+  // Запрет двух минусов подряд
+  if (ch === '−' && lastChar === '−') {
+    return;
+  }
+  
+  // Запрет комбинаций -+ и +-
+  if ((lastChar === '−' && ch === '+') || (lastChar === '+' && ch === '−')) {
+    return;
+  }
+  
+  // Запрет умножения/деления на -0
+  if ((ch === '×' || ch === '÷') && expr.endsWith('-0')) {
+    return;
+  }
+  
   // ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПРИ ВВОДЕ
   const potentialExpr = expr + ch;
   
   // Запрет деления на ноль при вводе
-  if (potentialExpr.match(/÷\s*-?\s*0/) && !potentialExpr.match(/÷\s*-?\s*0\./)) {
+  if (potentialExpr.includes('÷0') && !potentialExpr.includes('÷0.')) {
     return;
   }
   
@@ -501,23 +505,24 @@ if ((ch === '×' || ch === '÷') && expr.endsWith('-0')) {
     return;
   }
   
-  // Обработка операторов с разрешением унарных минусов
+  // Обработка операторов
   if (ops.includes(lastChar) && ops.includes(ch)) {
     const operatorsMatch = expr.match(/[+−×÷]+$/);
     const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
-    const newSequence = currentOperators + ch;
     
-    // СУПЕР ЗАЩИТА: Максимум 2 оператора подряд
-    if (newSequence.length >= 3) {
+    // Максимум 2 оператора подряд
+    if (currentOperators.length >= 2) {
       return;
     }
     
-    const validCombinations = ['+−', '−+', '×−', '÷−', '−−'];
+    // Разрешаем только валидные комбинации
+    const validCombinations = ['+−', '−+', '×−', '÷−'];
     const currentCombination = lastChar + ch;
     
     if (validCombinations.includes(currentCombination)) {
       expr += ch;
     } else {
+      // Заменяем последний оператор
       expr = expr.slice(0, -1) + ch;
     }
   } 
@@ -560,12 +565,14 @@ function insertNumber(val) {
     renderScreen();
     return;
   }
+  
   // Запрет ведущих нулей (кроме 0.xxx)
-if (val !== '.' && lastNum === '0' && !lastNum.includes('.')) {
-  expr = expr.slice(0, -1) + val;
-  renderScreen();
-  return;
-}
+  if (val !== '.' && lastNum === '0' && !lastNum.includes('.')) {
+    expr = expr.slice(0, -1) + val;
+    renderScreen();
+    return;
+  }
+  
   // Автодобавление 0 перед точкой если нужно
   if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
     expr += '0.';
