@@ -203,10 +203,10 @@ function handleEquals() {
       if (expr.includes('÷0') && !expr.includes('÷0.')) {
         expr = expr.replace(/÷0$/, '÷').replace(/÷0([+−×÷)])/, '÷$1');
       }
-      // Убираем лишний оператор в конце
-      else if (/[+−×÷]=?$/.test(expr)) {
-        expr = expr.replace(/[+−×÷]=?$/, '');
-      }
+  // НЕ убираем оператор в конце - оставляем как есть для редактирования
+// else if (/[+−×÷]=?$/.test(expr)) {
+//   expr = expr.replace(/[+−×÷]=?$/, '');
+// }
       
       renderScreen();
     } else {
