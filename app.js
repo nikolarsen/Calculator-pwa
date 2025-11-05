@@ -635,7 +635,7 @@ keys.addEventListener('click', (e) => {
   }
 });
 
-/* История — выбор результата */
+/* История — выбор результата - ИСПРАВЛЕННАЯ */
 historyEl.addEventListener('click', (e) => {
   if (errorState) return;
   
@@ -645,12 +645,31 @@ historyEl.addEventListener('click', (e) => {
   try {
     const text = line.textContent.split('=')[1].trim();
     const lastChar = expr.slice(-1);
-    const ops = ['+', '−', '×', '÷', '(', ')'];
+    const ops = ['+', '−', '×', '÷'];
     
-    if (expr && !ops.includes(lastChar)) {
-      expr = expr.replace(/([0-9.]+)$/, text);
-    } else {
-      expr += text;
+    // Если выражение пустое или заканчивается оператором - просто добавляем число
+    if (!expr || ops.includes(lastChar) || lastChar === '(') {
+      // Если число отрицательное и выражение пустое - добавляем как есть
+      if (text.startsWith('−') && !expr) {
+        expr = text;
+      }
+      // Если число отрицательное и есть оператор - добавляем в скобках
+      else if (text.startsWith('−') && ops.includes(lastChar)) {
+        expr += `(${text})`;
+      }
+      // Если число положительное - добавляем как есть
+      else {
+        expr += text;
+      }
+    }
+    // Если выражение заканчивается числом - заменяем последнее число
+    else {
+      // Если новое число отрицательное - добавляем в скобках
+      if (text.startsWith('−')) {
+        expr = expr.replace(/([0-9.]+)$/, `(${text})`);
+      } else {
+        expr = expr.replace(/([0-9.]+)$/, text);
+      }
     }
     
     replaceLastNumber = true;
