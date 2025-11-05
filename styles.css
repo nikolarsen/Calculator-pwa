@@ -25,29 +25,27 @@ html, body {
   overflow: hidden;
 }
 /* Кнопка настроек */
-/* Кнопка настроек - простой фикс */
+/* Кнопка настроек - слева */
 .settings-btn {
   position: fixed;
   top: 15px;
-  right: 15px;
+  left: 15px;  /* ← ИЗМЕНИЛИ С right НА left */
   background: rgba(45, 45, 45, 0.9);
   border: none;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
   color: var(--text);
   cursor: pointer;
   z-index: 1000;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
-  
-  /* Только это добавляем */
   outline: none;
   box-shadow: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settings-btn:hover {
