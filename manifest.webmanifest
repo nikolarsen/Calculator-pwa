@@ -5,9 +5,9 @@
   "start_url": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay"],
+  "orientation": "portrait",
   "background_color": "#0f0f0f",
   "theme_color": "#111111",
-  "orientation": "portrait",
   "categories": ["utilities", "productivity"],
   "lang": "ru",
   "dir": "ltr",
@@ -26,7 +26,6 @@
       "type": "image/png",
       "purpose": "any"
     },
-
     {
       "src": "./icons/icon-128.png",
       "sizes": "128x128",
