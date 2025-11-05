@@ -453,18 +453,36 @@ function insertChar(ch) {
   }
   
   // Обработка операторов с разрешением унарных минусов
-  if (ops.includes(lastChar) && ops.includes(ch)) {
-    // Разрешаем только валидные комбинации с унарными минусами
-    const validCombinations = ['+−', '−+', '×−', '÷−', '−−'];
-    const currentCombination = lastChar + ch;
-    
-    if (validCombinations.includes(currentCombination)) {
-      expr += ch;
-    } else {
-      // Для невалидных комбинаций - заменяем последний оператор
-      expr = expr.slice(0, -1) + ch;
-    }
+  // Обработка операторов с разрешением унарных минусов
+if (ops.includes(lastChar) && ops.includes(ch)) {
+  // Находим всю последовательность операторов в конце выражения
+  const operatorsMatch = expr.match(/[+−×÷]+$/);
+  const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
+  const newSequence = currentOperators + ch;
+  
+  // Запрещаем последовательности из 3+ операторов
+  if (newSequence.length >= 3) {
+    return; // Не добавляем новый оператор
+  }
+  
+  // Запрещаем невалидные комбинации из 2 операторов
+  const validCombinations = ['+−', '−+', '×−', '÷−', '−−'];
+  const currentCombination = lastChar + ch;
+  
+  // Если это комбинация из 2 операторов, проверяем валидность
+  if (newSequence.length === 2 && !validCombinations.includes(currentCombination)) {
+    // Для невалидных комбинаций - заменяем последний оператор
+    expr = expr.slice(0, -1) + ch;
   } 
+  else if (newSequence.length === 1) {
+    // Одиночный оператор - добавляем как есть
+    expr += ch;
+  }
+  else {
+    // Допустимая комбинация из 2 операторов - добавляем
+    expr += ch;
+  }
+} 
   // Добавление оператора после результата
   else if (readyForNewInput && ops.includes(ch)) {
     expr += ch;
