@@ -138,62 +138,68 @@ html, body {
 
 /* Стили для разных форм кнопок */
 .btn-shape-rounded {
-  border-radius: 12px;
+  border-radius: 12px !important;
 }
 
 .btn-shape-square {
-  border-radius: 4px;
+  border-radius: 4px !important;
 }
 
 .btn-shape-circle {
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Стили для разных размеров кнопок */
 .btn-size-compact {
-  padding: 16px 10px;
-  font-size: 20px;
+  padding: 16px 10px !important;
+  font-size: 20px !important;
 }
 
 .btn-size-standard {
-  padding: 20px 12px;
-  font-size: 24px;
+  padding: 20px 12px !important;
+  font-size: 24px !important;
 }
 
 .btn-size-large {
-  padding: 24px 16px;
-  font-size: 28px;
+  padding: 24px 16px !important;
+  font-size: 28px !important;
 }
 
 /* Круглые кнопки с разными размерами */
 .btn-size-compact.btn-shape-circle {
-  padding: 12px;
-  font-size: 16px;
+  padding: 12px !important;
+  font-size: 16px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
 }
 
 .btn-size-standard.btn-shape-circle {
-  padding: 16px;
-  font-size: 20px;
+  padding: 16px !important;
+  font-size: 20px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
 }
 
 .btn-size-large.btn-shape-circle {
-  padding: 20px;
-  font-size: 24px;
+  padding: 20px !important;
+  font-size: 24px !important;
+  min-width: 68px !important;
+  min-height: 68px !important;
 }
 
 /* Кнопки в настройках - всегда скругленные */
 .settings-buttons .btn {
-  border-radius: 8px;
-  aspect-ratio: auto;
-  padding: 12px;
-  font-size: 16px;
-}
-
-/* Темы */
+  border-radius: 8px !important;
+  aspect-ratio: auto !important;
+  min-width: auto !important;
+  min-height: auto !important;
+  padding: 12px !important;
+  font-size: 16px !important;
+}/* Темы */
 .theme-dark {
   --bg: #0f0f0f;
   --panel: #1d1d1d;
