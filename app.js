@@ -22,48 +22,67 @@ const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
 
-// Упрощенная система состояний
-const state = {
-    expr: '',
-    readyForNewInput: false,
-    calculationInProgress: false,
-    errorState: false
-};
+// Звуки
+let soundEnabled = false;
+const clickSound = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==");
+
+let expr = '';
+let readyForNewInput = false;
+let replaceLastNumber = false;
+let calculationInProgress = false;
+let errorState = false;
 
 // Создаем элемент подсказки для истории
 const historyHint = document.createElement('div');
 historyHint.className = 'history-hint';
 historyHint.textContent = 'Подсказка: Удерживайте AC для очистки истории';
-historyHint.setAttribute('aria-label', 'Подсказка: Удерживайте AC для очистки истории');
+historyHint.setAttribute('aria-label', 'Подсказка: Удержижите AC для очистки истории');
 
 /* ===== НАСТРОЙКИ - Загрузка и применение ===== */
 function loadSettings() {
-    const settings = JSON.parse(localStorage.getItem('calcSettings')) || getDefaultSettings();
+    const settings = JSON.parse(localStorage.getItem('calcSettings')) || {};
     
-    // Применяем настройки
-    themeSelect.value = settings.theme;
-    screenFontSize.value = settings.screenFontSize;
-    historyFontSize.value = settings.historyFontSize;
-    buttonShape.value = settings.buttonShape;
-    buttonSize.value = settings.buttonSize;
-    buttonOpacity.value = settings.buttonOpacity;
-    decimalPlaces.value = settings.decimalPlaces;
-    keyboardSounds.value = settings.keyboardSounds;
+    if (settings.theme) {
+        document.body.className = `theme-${settings.theme}`;
+        themeSelect.value = settings.theme;
+    }
     
-    applySettings();
-}
-
-function getDefaultSettings() {
-    return {
-        theme: 'dark',
-        screenFontSize: 52,
-        historyFontSize: 22,
-        buttonShape: 'rounded',
-        buttonSize: 'standard',
-        buttonOpacity: 85,
-        decimalPlaces: '10',
-        keyboardSounds: 'off'
-    };
+    if (settings.screenFontSize) {
+        screen.style.fontSize = `${settings.screenFontSize}px`;
+        screenFontSize.value = settings.screenFontSize;
+        screenSizeValue.textContent = `${settings.screenFontSize}px`;
+    }
+    
+    if (settings.historyFontSize) {
+        historyEl.style.fontSize = `${settings.historyFontSize}px`;
+        historyFontSize.value = settings.historyFontSize;
+        historySizeValue.textContent = `${settings.historyFontSize}px`;
+    }
+    
+    if (settings.buttonShape) {
+        buttonShape.value = settings.buttonShape;
+        applyButtonShape(settings.buttonShape);
+    }
+    
+    if (settings.buttonSize) {
+        buttonSize.value = settings.buttonSize;
+        applyButtonSize(settings.buttonSize);
+    }
+    
+    if (settings.buttonOpacity) {
+        buttonOpacity.value = settings.buttonOpacity;
+        opacityValue.textContent = `${settings.buttonOpacity}%`;
+        applyButtonOpacity(settings.buttonOpacity);
+    }
+    
+    if (settings.decimalPlaces) {
+        decimalPlaces.value = settings.decimalPlaces;
+    }
+    
+    if (settings.keyboardSounds) {
+        keyboardSounds.value = settings.keyboardSounds;
+        soundEnabled = settings.keyboardSounds === 'on';
+    }
 }
 
 function saveSettingsToStorage() {
@@ -83,33 +102,30 @@ function saveSettingsToStorage() {
 }
 
 function applySettings() {
-    // Применяем тему
     document.body.className = `theme-${themeSelect.value}`;
     
-    // Размеры шрифтов
     screen.style.fontSize = `${screenFontSize.value}px`;
     screenSizeValue.textContent = `${screenFontSize.value}px`;
     
     historyEl.style.fontSize = `${historyFontSize.value}px`;
     historySizeValue.textContent = `${historyFontSize.value}px`;
     
-    // Формы и размеры кнопок
     applyButtonShape(buttonShape.value);
     applyButtonSize(buttonSize.value);
     applyButtonOpacity(buttonOpacity.value);
+    
+    soundEnabled = keyboardSounds.value === 'on';
 }
 
 function resetSettingsToDefault() {
-    const defaults = getDefaultSettings();
-    
-    themeSelect.value = defaults.theme;
-    screenFontSize.value = defaults.screenFontSize;
-    historyFontSize.value = defaults.historyFontSize;
-    buttonShape.value = defaults.buttonShape;
-    buttonSize.value = defaults.buttonSize;
-    buttonOpacity.value = defaults.buttonOpacity;
-    decimalPlaces.value = defaults.decimalPlaces;
-    keyboardSounds.value = defaults.keyboardSounds;
+    themeSelect.value = 'dark';
+    screenFontSize.value = '52';
+    historyFontSize.value = '22';
+    buttonShape.value = 'rounded';
+    buttonSize.value = 'standard';
+    buttonOpacity.value = '85';
+    decimalPlaces.value = '10';
+    keyboardSounds.value = 'off';
     
     applySettings();
     localStorage.removeItem('calcSettings');
@@ -159,10 +175,12 @@ buttonOpacity.addEventListener('input', function() {
 /* ===== УПРАВЛЕНИЕ МОДАЛЬНЫМ ОКНОМ ===== */
 settingsBtn.addEventListener('click', () => {
     settingsModal.classList.add('active');
+    playSound();
 });
 
 closeSettings.addEventListener('click', () => {
     settingsModal.classList.remove('active');
+    playSound();
 });
 
 settingsModal.addEventListener('click', (e) => {
@@ -174,9 +192,13 @@ settingsModal.addEventListener('click', (e) => {
 saveSettings.addEventListener('click', () => {
     saveSettingsToStorage();
     settingsModal.classList.remove('active');
+    playSound();
 });
 
-resetSettings.addEventListener('click', resetSettingsToDefault);
+resetSettings.addEventListener('click', () => {
+    resetSettingsToDefault();
+    playSound();
+});
 
 /* ===== СОХРАНЕНИЕ И ЗАГРУЗКА ИСТОРИИ ===== */
 function saveHistory() {
@@ -194,7 +216,13 @@ function loadHistory() {
         try {
             const historyItems = JSON.parse(saved);
             historyItems.forEach(item => {
-                addHistoryLine(item);
+                const el = document.createElement('div');
+                el.className = 'line';
+                el.textContent = item;
+                el.setAttribute('role', 'button');
+                el.setAttribute('tabindex', '0');
+                el.setAttribute('aria-label', `Вычисление: ${item}. Нажмите чтобы использовать результат`);
+                historyEl.appendChild(el);
             });
         } catch (error) {
             console.error('Ошибка загрузки истории:', error);
@@ -203,21 +231,10 @@ function loadHistory() {
     updateHistoryHint();
 }
 
-function addHistoryLine(text) {
-    const el = document.createElement('div');
-    el.className = 'line';
-    el.textContent = text;
-    el.setAttribute('role', 'button');
-    el.setAttribute('tabindex', '0');
-    el.setAttribute('aria-label', `Вычисление: ${text}. Нажмите чтобы использовать результат`);
-    historyEl.appendChild(el);
-}
-
 /* ===== УМНОЕ ФОРМАТИРОВАНИЕ ЧИСЕЛ ===== */
 function formatDisplayValue(value) {
     if (!value || value === '0') return '0';
     
-    // Если есть операторы - возвращаем как есть
     if (/[+−×÷()%]/.test(value)) {
         return value;
     }
@@ -229,14 +246,26 @@ function formatDisplayValue(value) {
         const absNum = Math.abs(num);
         const strNum = value.toString();
         
-        // Для очень больших или очень маленьких чисел используем экспоненту
         if (strNum.length > 12) {
-            if (absNum >= 1e12 || (absNum > 0 && absNum < 1e-6)) {
+            if (absNum >= 1e12) {
                 return num.toExponential(6).replace('e', 'E');
             }
             
-            // Обрезаем лишние десятичные знаки
-            return parseFloat(num.toFixed(8)).toString();
+            if (absNum > 0 && absNum < 1e-6) {
+                return num.toExponential(6).replace('e', 'E');
+            }
+            
+            if (strNum.includes('.')) {
+                const [integer, decimal] = strNum.split('.');
+                if (integer.length > 8) {
+                    return num.toExponential(6).replace('e', 'E');
+                }
+                if (decimal.length > 8) {
+                    return parseFloat(num.toFixed(8)).toString();
+                }
+            }
+            
+            return parseFloat(num.toFixed(10)).toString();
         }
         
         return value;
@@ -247,14 +276,12 @@ function formatDisplayValue(value) {
 
 /* ===== ОТОБРАЖЕНИЕ ЭКРАНА ===== */
 function renderScreen() {
-    let displayValue = state.expr || '0';
+    let displayValue = expr || '0';
     
     displayValue = formatDisplayValue(displayValue);
     
-    // Сбрасываем классы размера
     screen.className = 'screen';
     
-    // Автоматическое масштабирование
     if (displayValue.length > 20) {
         screen.classList.add('extremely-long-number');
     } else if (displayValue.length > 15) {
@@ -268,28 +295,26 @@ function renderScreen() {
 }
 
 function showError() {
-    state.errorState = true;
+    errorState = true;
     screen.style.color = 'var(--danger)';
 }
 
 function hideError() {
-    state.errorState = false;
+    errorState = false;
     screen.style.color = '';
 }
 
 /* ===== ДОБАВЛЕНИЕ В ИСТОРИЮ ===== */
 function addHistoryItem(input, result) {
-    const text = `${input} = ${result}`;
     const el = document.createElement('div');
     el.className = 'line';
-    el.textContent = text;
+    el.textContent = `${input} = ${result}`;
     el.setAttribute('role', 'button');
     el.setAttribute('tabindex', '0');
     el.setAttribute('aria-label', `Вычисление: ${input} равно ${result}. Нажмите чтобы использовать результат`);
     
     historyEl.prepend(el);
 
-    // Ограничиваем историю 50 элементами
     while (historyEl.children.length > 50) {
         historyEl.removeChild(historyEl.lastChild);
     }
@@ -298,51 +323,130 @@ function addHistoryItem(input, result) {
     updateHistoryHint();
 }
 
-/* ===== УПРОЩЕННАЯ ВАЛИДАЦИЯ ВЫРАЖЕНИЯ ===== */
-function validateExpression(expr) {
-    if (!expr) return false;
+/* ===== ПРОВЕРКА СИНТАКСИСА - УСИЛЕННАЯ ВАЛИДАЦИЯ ===== */
+function validateExpression(displayExpr) {
+    if (!displayExpr) return false;
     
-    const validations = [
-        // Нельзя начинать с × или ÷ или +
-        () => !/^[×÷+]/.test(expr),
-        
-        // Проверка деления на ноль
-        () => !/÷\s*-?\s*0(?!\.)/.test(expr),
-        
-        // Проверка на двойные операторы
-        () => !/([+×÷][+×÷])/.test(expr),
-        
-        // Проверка на пустые скобки
-        () => !expr.includes('()'),
-        
-        // Проверка баланса скобок
-        () => {
-            const open = (expr.match(/\(/g) || []).length;
-            const close = (expr.match(/\)/g) || []).length;
-            return open === close;
-        },
-        
-        // После ( нельзя ставить × или ÷ или +
-        () => !/\([×÷+]/.test(expr),
-        
-        // Запрет операторов в конце
-        () => !/[+×÷−]$/.test(expr)
-    ];
+    // Нельзя начинать с × или ÷ или +
+    if (displayExpr.startsWith('×') || displayExpr.startsWith('÷') || displayExpr.startsWith('+')) {
+        return false;
+    }
     
-    return validations.every(validation => validation());
+    // Строгая проверка на деление на ноль
+    if (displayExpr.match(/÷\s*-?\s*0/)) {
+        const zeroDivisionMatches = displayExpr.match(/÷\s*(-?\s*0[^.]?)/g);
+        if (zeroDivisionMatches) {
+            for (const match of zeroDivisionMatches) {
+                const afterZero = match.replace(/÷\s*(-?\s*0)/, '');
+                if (afterZero && !afterZero.startsWith('.') && !/[)+×÷]/.test(afterZero[0])) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+    
+    // Проверка на двойные операторы в конце
+    if (/[+−×÷]=?$/.test(displayExpr)) {
+        return false;
+    }
+    
+    // Проверка на пустые скобки
+    if (displayExpr.includes('()')) {
+        return false;
+    }
+    
+    // После ( нельзя ставить × или ÷ или +
+    if (displayExpr.includes('(×') || displayExpr.includes('(÷') || displayExpr.includes('(+')) {
+        return false;
+    }
+    
+    // Проверка на незакрытые скобки
+    const open = (displayExpr.match(/\(/g) || []).length;
+    const close = (displayExpr.match(/\)/g) || []).length;
+    if (open !== close) {
+        return false;
+    }
+    
+    // ЗАПРЕТ: множественные операторы (кроме унарного минуса)
+    if (/([+×÷][+×÷])/.test(displayExpr)) {
+        return false;
+    }
+    
+    // ЗАПРЕТ: операторы в конце
+    if (/[+×÷]$/.test(displayExpr)) {
+        return false;
+    }
+    
+    // ЗАПРЕТ: два оператора деления/умножения подряд
+    if (/[×÷][×÷]/.test(displayExpr)) {
+        return false;
+    }
+    
+    // ЗАПРЕТ: оператор сразу после открывающей скобки (кроме унарного минуса)
+    if (/\([+×÷]/.test(displayExpr)) {
+        return false;
+    }
+    
+    // ЗАПРЕТ: бессмысленные выражения с множественными нулями
+    if (/[×÷]-?0[×÷]-?0/.test(displayExpr)) {
+        return false;
+    }
+    
+    // ЗАПРЕТ: множественные унарные минусы (больше одного подряд)
+    if (/−−\d/.test(displayExpr)) {
+        return false;
+    }
+    
+    // ЗАПРЕТ: ведущие нули
+    if (/\D0\d/.test(displayExpr)) {
+        return false;
+    }
+
+    // ЗАПРЕТ: деление сразу после деления
+    if (/÷\s*÷/.test(displayExpr)) {
+        return false;
+    }
+    
+    // ЗАПРЕТ: выражения, заканчивающиеся на оператор
+    if (/[+×÷−]$/.test(displayExpr)) {
+        return false;
+    }
+    
+    return true;
 }
 
-/* ===== ПОДГОТОВКА И ВЫЧИСЛЕНИЕ ВЫРАЖЕНИЯ ===== */
+/* ===== ПОДГОТОВКА ВЫРАЖЕНИЯ - ПРОФЕССИОНАЛЬНЫЕ ПРОЦЕНТЫ ===== */
 function sanitizeForCalc(displayExpr) {
     if (!displayExpr) return '';
     
-    return displayExpr
+    let s = displayExpr
         .replace(/×/g, '*')
         .replace(/÷/g, '/')
         .replace(/−/g, '-')
         .replace(/\s/g, '');
+
+    // ПРОФЕССИОНАЛЬНАЯ ЛОГИКА ПРОЦЕНТОВ
+    s = s.replace(/(\d+(?:\.\d+)?)([\+\-])(\d+(?:\.\d+)?)%/g, '($1$2($1*$3/100))');
+    s = s.replace(/(\d+(?:\.\d+)?)([\*\/])(\d+(?:\.\d+)?)%/g, '($1$2($3/100))');
+    s = s.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+    
+    s = s.replace(/[^0-9+\-*/().]/g, '');
+    
+    return s;
 }
 
+/* ===== НОРМАЛИЗАЦИЯ ВЫРАЖЕНИЯ ===== */
+function normalizeExpression(expr) {
+    let normalized = expr
+        .replace(/([×÷+])−/g, '$1~')
+        .replace(/^−/, '~')
+        .replace(/\(−/g, '(~');
+    
+    return normalized;
+}
+
+/* ===== БЕЗОПАСНОЕ ВЫЧИСЛЕНИЕ ===== */
 function safeEval(displayExpr) {
     if (!validateExpression(displayExpr)) {
         return null;
@@ -351,172 +455,231 @@ function safeEval(displayExpr) {
     let jsExpr = sanitizeForCalc(displayExpr);
     if (!jsExpr) return null;
 
+    jsExpr = normalizeExpression(jsExpr)
+        .replace(/×/g, '*')
+        .replace(/÷/g, '/')
+        .replace(/~/g, '-u')
+        .replace(/-u/g, '-');
+
     try {
-        // Обработка процентов - упрощенная версия
-        jsExpr = jsExpr.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
-        
         const result = Function('"use strict";return(' + jsExpr + ')')();
         
         if (typeof result !== 'number' || !isFinite(result)) {
             return null;
         }
         
-        // Обработка очень больших/маленьких чисел
         if (Math.abs(result) > 1e15) return null;
         if (Math.abs(result) < 1e-15 && result !== 0) return 0;
         
         const decimalPlacesValue = parseInt(decimalPlaces.value) || 10;
         
-        return Number.isInteger(result) ? result : parseFloat(result.toFixed(decimalPlacesValue));
+        if (Number.isInteger(result)) {
+            return result;
+        } else {
+            return parseFloat(result.toFixed(decimalPlacesValue));
+        }
     } catch (error) {
         return null;
     }
 }
 
-/* ===== ОБРАБОТКА ВВОДА ===== */
+/* ===== ВСТАВКА СИМВОЛА - ИСПРАВЛЕННАЯ ВАЛИДАЦИЯ ОПЕРАТОРОВ ===== */
 function insertChar(ch) {
-    if (state.errorState) {
+    if (errorState) {
         hideError();
     }
     
-    const lastChar = state.expr.slice(-1);
+    const lastChar = expr.slice(-1);
     const ops = ['+', '−', '×', '÷'];
     
-    // Валидация ввода операторов
-    if (!state.expr && (ch === '×' || ch === '÷' || ch === '+')) {
+    // СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с операторов ×÷+
+    if (!expr && (ch === '×' || ch === '÷' || ch === '+')) {
         return;
     }
     
+    // После ( нельзя ставить × или ÷ или +
     if (lastChar === '(' && (ch === '×' || ch === '÷' || ch === '+')) {
         return;
     }
     
-    // Обработка операторов после операторов (разрешаем только унарный минус)
+    // ЗАПРЕТ: оператор после оператора (кроме унарного минуса)
     if (ops.includes(lastChar) && ops.includes(ch)) {
         if (ch === '−') {
-            state.expr += ch;
+            if (lastChar === '−') return;
+            expr += ch;
         } else {
-            state.expr = state.expr.slice(0, -1) + ch;
+            expr = expr.slice(0, -1) + ch;
         }
         renderScreen();
         return;
     }
     
-    // Обработка readyForNewInput
-    if (state.readyForNewInput && ops.includes(ch)) {
-        state.expr += ch;
-        state.readyForNewInput = false;
-    } else {
-        state.expr += ch;
+    // ЗАПРЕТ: оператор после открывающей скобки (кроме унарного минуса)
+    if (lastChar === '(' && ops.includes(ch) && ch !== '−') {
+        return;
     }
     
+    // Проверка всей комбинации при вводе
+    const newExpr = expr + ch;
+    
+    // Запрет деления на ноль при вводе
+    if (newExpr.includes('÷0') && !newExpr.includes('÷0.')) {
+        return;
+    }
+    
+    // Запрет невалидных комбинаций операторов в середине выражения
+    if (/([+×÷][+×÷])/.test(newExpr)) {
+        return;
+    }
+    
+    // Запрет тройных операторов
+    if (/[+−×÷]{3,}/.test(newExpr)) {
+        return;
+    }
+    
+    // Обработка readyForNewInput
+    if (readyForNewInput && ops.includes(ch)) {
+        expr += ch;
+        readyForNewInput = false;
+    } else {
+        expr += ch;
+    }
+    
+    replaceLastNumber = false;
     renderScreen();
 }
 
+/* ===== ОБРАБОТКА ЧИСЕЛ С ПРОФЕССИОНАЛЬНОЙ АВТОТОЧКОЙ ===== */
 function insertNumber(val) {
-    if (state.errorState) {
+    if (errorState) {
         hideError();
     }
     
-    // Если готовы к новому вводу и нет оператора в конце - очищаем
-    if (state.readyForNewInput && !/[+−×÷]$/.test(state.expr)) {
-        state.expr = '';
-        state.readyForNewInput = false;
+    // ЕСЛИ readyForNewInput И НЕТ ОПЕРАТОРА - очищаем выражение
+    if (readyForNewInput && !/[+−×÷]$/.test(expr)) {
+        expr = '';
+        readyForNewInput = false;
+    } else if (replaceLastNumber) {
+        expr = expr.replace(/([0-9.]+)$/, '');
+        replaceLastNumber = false;
     }
     
-    const parts = state.expr.split(/[^0-9.]/);
+    const parts = expr.split(/[^0-9.]/);
     const lastNum = parts[parts.length - 1] || '';
     
     // Запрет множественных точек
     if (val === '.' && lastNum.includes('.')) return;
     
-    // Автодобавление 0 перед точкой если нужно
-    if (val === '.' && (!lastNum || /[+−×÷(]$/.test(state.expr))) {
-        state.expr += '0.';
-    } else {
-        state.expr += val;
+    // ПРОФЕССИОНАЛЬНАЯ АВТОТОЧКА ПОСЛЕ НУЛЯ
+    if (val === '0' && lastNum === '0') {
+        expr += '.';
+        renderScreen();
+        return;
     }
     
-    state.readyForNewInput = false;
+    // Запрет ведущих нулей (кроме 0.xxx)
+    if (val !== '.' && lastNum === '0' && !lastNum.includes('.')) {
+        expr = expr.slice(0, -1) + val;
+        renderScreen();
+        return;
+    }
+    
+    // Автодобавление 0 перед точкой если нужно
+    if (val === '.' && (!lastNum || /[+−×÷(]$/.test(expr))) {
+        expr += '0.';
+    } else {
+        expr += val;
+    }
+    
+    readyForNewInput = false;
     renderScreen();
 }
 
 /* ===== ОСНОВНЫЕ ОПЕРАЦИИ ===== */
 function handleEquals() {
-    if (state.calculationInProgress || !state.expr || state.errorState) return;
+    if (calculationInProgress || !expr || errorState) return;
     
-    state.calculationInProgress = true;
+    calculationInProgress = true;
     
     try {
-        const result = safeEval(state.expr);
+        const result = safeEval(expr);
         
         if (result === null) {
             showError();
-        } else {
-            let displayResult = Number.isInteger(result) ? 
-                result.toString() : 
-                parseFloat(result.toFixed(10)).toString();
             
-            addHistoryItem(state.expr, displayResult);
-            state.expr = displayResult
+            if (expr.includes('÷0') && !expr.includes('÷0.')) {
+                expr = expr.replace(/÷0$/, '÷').replace(/÷0([+−×÷)])/, '÷$1');
+            }
+            
+            renderScreen();
+        } else {
+            let displayResult;
+            if (Number.isInteger(result)) {
+                displayResult = result.toString();
+            } else {
+                displayResult = parseFloat(result.toFixed(10)).toString();
+            }
+            
+            addHistoryItem(expr, displayResult);
+            expr = displayResult
                 .replace(/\*/g, '×')
                 .replace(/\//g, '÷')
                 .replace(/-/g, '−');
             
             renderScreen();
-            state.readyForNewInput = true;
+            readyForNewInput = true;
         }
         
     } catch (error) {
         showError();
     } finally {
         setTimeout(() => {
-            state.calculationInProgress = false;
+            calculationInProgress = false;
         }, 100);
     }
 }
 
 function handlePercent() {
-    if (state.errorState) return;
+    if (errorState) return;
     
-    const lastChar = state.expr.slice(-1);
-    if (!state.expr || ['+', '−', '×', '÷', '('].includes(lastChar)) return;
+    const lastChar = expr.slice(-1);
+    if (!expr || ['+', '−', '×', '÷', '('].includes(lastChar)) return;
     
-    state.expr += '%';
+    expr += '%';
     renderScreen();
 }
 
 function handleParen() {
-    if (state.errorState) {
+    if (errorState) {
         hideError();
     }
     
-    const open = (state.expr.match(/\(/g) || []).length;
-    const close = (state.expr.match(/\)/g) || []).length;
+    const open = (expr.match(/\(/g) || []).length;
+    const close = (expr.match(/\)/g) || []).length;
     
-    if (state.readyForNewInput) {
-        state.expr = '';
-        state.readyForNewInput = false;
+    if (readyForNewInput) {
+        expr = '';
+        readyForNewInput = false;
     }
     
-    if (!state.expr || /[+−×÷(]$/.test(state.expr)) {
-        state.expr += '(';
-    } else if (open > close && !/[+−×÷(]$/.test(state.expr)) {
-        state.expr += ')';
+    if (!expr || /[+−×÷(]$/.test(expr)) {
+        expr += '(';
+    } else if (open > close && !/[+−×÷(]$/.test(expr)) {
+        expr += ')';
     } else {
-        state.expr += '×(';
+        expr += '×(';
     }
     
     renderScreen();
 }
 
 function handleDelete() {
-    if (state.errorState) {
+    if (errorState) {
         hideError();
     }
     
-    if (state.expr.length > 0) {
-        state.expr = state.expr.slice(0, -1);
+    if (expr.length > 0) {
+        expr = expr.slice(0, -1);
         renderScreen();
     }
 }
@@ -529,16 +692,27 @@ function handleAllClear(longPress = false) {
         setTimeout(() => {
             historyEl.innerHTML = '';
             localStorage.removeItem('calcHistory');
-            state.expr = '';
+            expr = '';
             hideError();
             renderScreen();
             updateHistoryHint();
         }, 800);
     } else {
-        state.expr = '';
-        state.readyForNewInput = false;
+        expr = '';
+        readyForNewInput = false;
+        replaceLastNumber = false;
         hideError();
         renderScreen();
+    }
+}
+
+/* ===== ЗВУКИ ===== */
+function playSound() {
+    if (soundEnabled) {
+        clickSound.currentTime = 0;
+        clickSound.play().catch(() => {
+            // Игнорируем ошибки воспроизведения звука
+        });
     }
 }
 
@@ -558,14 +732,25 @@ keys.addEventListener('click', (e) => {
     const action = btn.dataset.action;
 
     vibrate();
+    playSound();
 
     if (action) {
         switch (action) {
-            case 'all-clear': handleAllClear(false); break;
-            case 'delete': handleDelete(); break;
-            case 'equals': handleEquals(); break;
-            case 'percent': handlePercent(); break;
-            case 'paren': handleParen(); break;
+            case 'all-clear':
+                handleAllClear(false);
+                break;
+            case 'delete':
+                handleDelete();
+                break;
+            case 'equals':
+                handleEquals();
+                break;
+            case 'percent':
+                handlePercent();
+                break;
+            case 'paren':
+                handleParen();
+                break;
         }
         return;
     }
@@ -581,27 +766,43 @@ keys.addEventListener('click', (e) => {
 
 /* ===== ИСТОРИЯ — ВЫБОР РЕЗУЛЬТАТА ===== */
 historyEl.addEventListener('click', (e) => {
-    if (state.errorState) return;
+    if (errorState) return;
     
     const line = e.target.closest('.line');
     if (!line) return;
     
     try {
         const text = line.textContent.split('=')[1].trim();
-        const lastChar = state.expr.slice(-1);
+        const lastChar = expr.slice(-1);
         const ops = ['+', '−', '×', '÷'];
         
-        if (!state.expr || ops.includes(lastChar) || lastChar === '(') {
-            state.expr += text.startsWith('−') && !state.expr ? text : `(${text})`;
-        } else {
-            state.expr = state.expr.replace(/([0-9.]+)$/, text);
+        if (!expr || ops.includes(lastChar) || lastChar === '(') {
+            if (text.startsWith('−') && !expr) {
+                expr = text;
+            }
+            else if (text.startsWith('−') && ops.includes(lastChar)) {
+                expr += `(${text})`;
+            }
+            else {
+                expr += text;
+            }
+        }
+        else {
+            if (text.startsWith('−')) {
+                expr = expr.replace(/([0-9.]+)$/, `(${text})`);
+            } else {
+                expr = expr.replace(/([0-9.]+)$/, text);
+            }
         }
         
-        state.readyForNewInput = false;
+        replaceLastNumber = true;
+        readyForNewInput = false;
         renderScreen();
+        
         vibrate();
+        playSound();
     } catch (error) {
-        // Игнорируем ошибки выбора из истории
+        // Ничего не делаем при ошибке выбора из истории
     }
 });
 
@@ -627,10 +828,14 @@ acBtn.addEventListener('touchend', () => {
 document.addEventListener('keydown', (e) => {
     const key = e.key;
     const keyActions = {
-        'Enter': 'equals', '=': 'equals',
-        'Escape': 'all-clear', 'Delete': 'all-clear',
-        'Backspace': 'delete', '%': 'percent',
-        '(': 'paren', ')': 'paren'
+        'Enter': 'equals',
+        '=': 'equals',
+        'Escape': 'all-clear',
+        'Delete': 'all-clear',
+        'Backspace': 'delete',
+        '%': 'percent',
+        '(': 'paren',
+        ')': 'paren'
     };
     
     const action = keyActions[key];
