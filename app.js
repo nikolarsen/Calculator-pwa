@@ -28,6 +28,12 @@ let replaceLastNumber = false;
 let calculationInProgress = false;
 let errorState = false;
 
+// Создаем элемент подсказки для истории
+const historyHint = document.createElement('div');
+historyHint.className = 'history-hint';
+historyHint.textContent = 'Здесь будет сохраняться история вычислений';
+historyHint.setAttribute('aria-label', 'Подсказка: здесь будет сохраняться история вычислений');
+
 /* НАСТРОЙКИ - Загрузка и применение */
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem('calcSettings')) || {};
@@ -141,6 +147,24 @@ function applyButtonOpacity(opacity) {
   });
 }
 
+/* УПРАВЛЕНИЕ ПОДСКАЗКОЙ ИСТОРИИ */
+function updateHistoryHint() {
+  const hasHistory = historyEl.querySelectorAll('.line').length > 0;
+  
+  if (hasHistory) {
+    // Если есть история - скрываем подсказку
+    if (historyEl.contains(historyHint)) {
+      historyHint.style.display = 'none';
+    }
+  } else {
+    // Если истории нет - показываем подсказку
+    if (!historyEl.contains(historyHint)) {
+      historyEl.appendChild(historyHint);
+    }
+    historyHint.style.display = 'flex';
+  }
+}
+
 screenFontSize.addEventListener('input', function() {
   screenSizeValue.textContent = `${this.value}px`;
 });
@@ -181,6 +205,7 @@ function saveHistory() {
     historyItems.push(line.textContent);
   });
   localStorage.setItem('calcHistory', JSON.stringify(historyItems));
+  updateHistoryHint(); // Обновляем подсказку после сохранения
 }
 
 function loadHistory() {
@@ -201,6 +226,7 @@ function loadHistory() {
       console.error('Ошибка загрузки истории:', error);
     }
   }
+  updateHistoryHint(); // Обновляем подсказку после загрузки
 }
 
 /* Умное форматирование чисел для экрана */
@@ -294,6 +320,7 @@ function addHistoryItem(input, result) {
   }
   
   saveHistory();
+  updateHistoryHint(); // Обновляем подсказку после добавления
 }
 
 /* Проверка синтаксиса - УСИЛЕННАЯ ВАЛИДАЦИЯ */
@@ -679,6 +706,7 @@ function handleAllClear(longPress = false) {
       expr = '';
       hideError();
       renderScreen();
+      updateHistoryHint(); // Обновляем подсказку после очистки истории
     }, 800);
   } else {
     expr = '';
@@ -841,4 +869,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   loadHistory();
   renderScreen();
+  updateHistoryHint(); // Инициализируем подсказку при загрузке
 });
