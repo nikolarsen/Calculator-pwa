@@ -384,7 +384,16 @@ function validateExpression(displayExpr) {
   if (/\D0\d/.test(displayExpr)) {
     return false;
   }
-  
+
+  // Запрет двух операторов деления подряд без скобок
+if (/÷[^()0-9]*÷/.test(displayExpr)) {
+    return false;
+}
+
+// Запрет деления сразу после деления
+if (/÷\s*÷/.test(displayExpr)) {
+    return false;
+}
   // Запрет сложных бессмысленных комбинаций
   if (/[+−][+−]\d/.test(displayExpr)) {
     return false;
@@ -514,7 +523,9 @@ if ((ch === '×' || ch === '÷') && /[+−×÷]-0$/.test(expr)) {
   if (ops.includes(lastChar) && ops.includes(ch)) {
     const operatorsMatch = expr.match(/[+−×÷]+$/);
     const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
-    
+    // Обработка операторов с разрешением унарных минусов
+if (ops.includes(lastChar) && ops.includes(ch)) {
+  
     // Максимум 2 оператора подряд
     if (currentOperators.length >= 2) {
       return;
