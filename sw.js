@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calc-pwa-v4';
+const CACHE_NAME = 'calc-pwa-v5';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -10,35 +10,27 @@ const CACHE_FILES = [
   './icons/apple-touch-icon-180.png'
 ];
 
-// ✅ Установка и кэширование ВСЕХ файлов
+// ✅ Установка и кэширование
 self.addEventListener('install', event => {
   console.log('[ServiceWorker] Установка...');
   
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[ServiceWorker] Кэширование всех файлов...');
-        // Важно: используем cache.addAll с fallback
-        return Promise.all(
-          CACHE_FILES.map(url => {
-            return cache.add(url).catch(error => {
-              console.log(`[ServiceWorker] Ошибка кэширования ${url}:`, error);
-              // Продолжаем даже если один файл не закэшировался
-            });
-          })
-        );
+        console.log('[ServiceWorker] Кэширование файлов...');
+        return cache.addAll(CACHE_FILES);
       })
       .then(() => {
         console.log('[ServiceWorker] Все файлы закэшированы');
         return self.skipWaiting();
       })
       .catch(error => {
-        console.error('[ServiceWorker] Критическая ошибка установки:', error);
+        console.error('[ServiceWorker] Ошибка установки:', error);
       })
   );
 });
 
-// ✅ Активация - агрессивная очистка старых кэшей
+// ✅ Активация - очистка старых кэшей
 self.addEventListener('activate', event => {
   console.log('[ServiceWorker] Активация...');
   
@@ -61,108 +53,30 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ✅ СТРАТЕГИЯ: Cache First + Network Fallback
+// ✅ Стратегия: Cache First с Network Fallback
 self.addEventListener('fetch', event => {
   const request = event.request;
   
-  // Игнорируем внешние запросы
-  if (!request.url.startsWith(self.location.origin)) {
+  // Игнорируем внешние запросы и не-GET запросы
+  if (!request.url.startsWith(self.location.origin) || request.method !== 'GET') {
     return;
   }
 
-  // Для навигационных запросов - особый подход
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      caches.match('./index.html')
-        .then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          return fetch(request)
-            .then(networkResponse => {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME)
-                .then(cache => {
-                  cache.put('./index.html', responseToCache);
-                });
-              return networkResponse;
-            })
-            .catch(() => {
-              // Fallback - базовая HTML страница
-              return new Response(
-                `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                  <title>Калькулятор</title>
-                  <meta charset="utf-8">
-                  <meta name="viewport" content="width=device-width,initial-scale=1">
-                  <style>
-                    body { 
-                      background: #0f0f0f; 
-                      color: #e9e9e9; 
-                      font-family: system-ui; 
-                      display: flex; 
-                      align-items: center; 
-                      justify-content: center; 
-                      height: 100vh; 
-                      margin: 0; 
-                    }
-                    .offline-message { 
-                      text-align: center; 
-                      padding: 20px; 
-                    }
-                    button { 
-                      background: #ff9a2a; 
-                      border: none; 
-                      padding: 12px 24px; 
-                      border-radius: 8px; 
-                      color: #111; 
-                      font-weight: bold; 
-                      cursor: pointer; 
-                      margin-top: 16px; 
-                    }
-                  </style>
-                </head>
-                <body>
-                  <div class="offline-message">
-                    <h2>🔌 Оффлайн режим</h2>
-                    <p>Приложение загружено из кэша</p>
-                    <button onclick="location.reload()">Обновить</button>
-                  </div>
-                </body>
-                </html>
-                `,
-                { 
-                  headers: { 
-                    'Content-Type': 'text/html; charset=utf-8' 
-                  } 
-                }
-              );
-            });
-        })
-    );
-    return;
-  }
-
-  // Для всех остальных запросов - Cache First
   event.respondWith(
     caches.match(request)
       .then(cachedResponse => {
-        // Если есть в кэше - возвращаем
+        // Если есть в кэше - возвращаем и обновляем кэш в фоне
         if (cachedResponse) {
           // Фоном обновляем кэш
           event.waitUntil(
             fetch(request)
               .then(networkResponse => {
-                caches.open(CACHE_NAME)
-                  .then(cache => {
-                    cache.put(request, networkResponse);
-                  });
+                if (networkResponse.status === 200) {
+                  caches.open(CACHE_NAME)
+                    .then(cache => cache.put(request, networkResponse));
+                }
               })
-              .catch(() => {
-                // Игнорируем ошибки сети при обновлении кэша
-              })
+              .catch(() => {/* Игнорируем ошибки сети */})
           );
           return cachedResponse;
         }
@@ -174,87 +88,41 @@ self.addEventListener('fetch', event => {
             if (networkResponse.status === 200) {
               const responseToCache = networkResponse.clone();
               caches.open(CACHE_NAME)
-                .then(cache => {
-                  cache.put(request, responseToCache);
-                });
+                .then(cache => cache.put(request, responseToCache));
             }
             return networkResponse;
           })
           .catch(error => {
-            // Fallback для разных типов ресурсов
-            console.log('[ServiceWorker] Ошибка загрузки:', request.url);
+            // Fallback для основных типов ресурсов
+            console.log('[ServiceWorker] Оффлайн для:', request.url);
+            
+            if (request.destination === 'document') {
+              return caches.match('./index.html');
+            }
             
             if (request.destination === 'style') {
               return new Response(
-                '/* Fallback CSS */ body { background: #0f0f0f; color: #e9e9e9; }',
+                `body { background: #0f0f0f; color: #e9e9e9; font-family: system-ui; }`,
                 { headers: { 'Content-Type': 'text/css' } }
               );
             }
             
             if (request.destination === 'script') {
               return new Response(
-                'console.log("Fallback JS loaded");',
+                `console.log("Калькулятор - оффлайн режим");`,
                 { headers: { 'Content-Type': 'application/javascript' } }
               );
             }
             
-            // Для manifest - возвращаем базовый
-            if (request.url.includes('manifest')) {
-              return new Response(
-                JSON.stringify({
-                  name: "Калькулятор",
-                  short_name: "Калькулятор",
-                  start_url: "./",
-                  display: "standalone",
-                  background_color: "#0f0f0f",
-                  theme_color: "#111111"
-                }),
-                { headers: { 'Content-Type': 'application/manifest+json' } }
-              );
-            }
-            
+            // Базовый fallback
             return new Response('Оффлайн', { 
               status: 408, 
-              headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+              statusText: 'Offline'
             });
           });
       })
   );
 });
-
-
-
-async function checkForUpdates() {
-  try {
-    const cache = await caches.open(CACHE_NAME);
-    
-    for (const url of CACHE_FILES) {
-      try {
-        const networkResponse = await fetch(url, { cache: 'no-cache' });
-        const cachedResponse = await cache.match(url);
-        
-        if (!cachedResponse || 
-            networkResponse.headers.get('etag') !== cachedResponse.headers.get('etag')) {
-          console.log('[ServiceWorker] Обнаружено обновление:', url);
-          await cache.put(url, networkResponse.clone());
-          
-          // Уведомляем клиентов об обновлении
-          const clients = await self.clients.matchAll();
-          clients.forEach(client => {
-            client.postMessage({
-              type: 'UPDATE_AVAILABLE',
-              url: url
-            });
-          });
-        }
-      } catch (error) {
-        console.log('[ServiceWorker] Ошибка проверки обновления:', url, error);
-      }
-    }
-  } catch (error) {
-    console.error('[ServiceWorker] Ошибка проверки обновлений:', error);
-  }
-}
 
 // ✅ Обработка сообщений от главного потока
 self.addEventListener('message', event => {
@@ -262,12 +130,7 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
   
-  if (event.data && event.data.type === 'CHECK_UPDATES') {
-    checkForUpdates();
-  }
-  
   if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({ version: CACHE_NAME });
+    event.ports[0]?.postMessage({ version: CACHE_NAME });
   }
 });
-
