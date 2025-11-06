@@ -504,7 +504,9 @@ if ((ch === '×' || ch === '÷') && /[+−×÷]-0$/.test(expr)) {
   if (/([+×÷])\1/.test(newExpr)) {
     return;
   }
-  
+   // Обработка операторов с разрешением унарных минусов
+if (ops.includes(lastChar) && ops.includes(ch)) {
+}
   if (/[×÷][+×÷]/.test(newExpr)) {
     return;
   }
@@ -523,9 +525,7 @@ if ((ch === '×' || ch === '÷') && /[+−×÷]-0$/.test(expr)) {
   if (ops.includes(lastChar) && ops.includes(ch)) {
     const operatorsMatch = expr.match(/[+−×÷]+$/);
     const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
-    // Обработка операторов с разрешением унарных минусов
-if (ops.includes(lastChar) && ops.includes(ch)) {
-  
+   
     // Максимум 2 оператора подряд
     if (currentOperators.length >= 2) {
       return;
