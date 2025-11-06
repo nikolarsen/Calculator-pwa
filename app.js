@@ -31,8 +31,8 @@ let errorState = false;
 // Создаем элемент подсказки для истории
 const historyHint = document.createElement('div');
 historyHint.className = 'history-hint';
-historyHint.textContent = 'Здесь будет сохраняться история вычислений';
-historyHint.setAttribute('aria-label', 'Подсказка: здесь будет сохраняться история вычислений');
+historyHint.textContent = 'Подсказка: Удерживайте AC для очистки истории';
+historyHint.setAttribute('aria-label', 'Подсказка: Удерживайте AC для очистки истории');
 
 /* НАСТРОЙКИ - Загрузка и применение */
 function loadSettings() {
