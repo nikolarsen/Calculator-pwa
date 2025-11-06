@@ -1,10 +1,14 @@
 :root {
+  /* Базовые цвета темной темы */
   --bg: #0f0f0f;
   --panel: #1d1d1d;
   --accent: #ff9a2a;
   --text: #e9e9e9;
   --muted: #9b9b9b;
   --danger: #ff4e4e;
+  --success: #4caf50;
+  --button-opacity: 85%;
+  
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -25,7 +29,7 @@ html, body {
   overflow: hidden;
 }
 
-/* Кнопка настроек */
+/* ===== КНОПКА НАСТРОЕК ===== */
 .settings-btn {
   position: fixed;
   top: 15px;
@@ -41,6 +45,9 @@ html, body {
   z-index: 1000;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settings-btn:hover {
@@ -48,7 +55,7 @@ html, body {
   transform: scale(1.1);
 }
 
-/* Модальное окно настроек */
+/* ===== МОДАЛЬНОЕ ОКНО НАСТРОЕК ===== */
 .settings-modal {
   display: none;
   position: fixed;
@@ -83,6 +90,7 @@ html, body {
   margin: 0 0 20px 0;
   color: var(--text);
   text-align: center;
+  font-weight: 600;
 }
 
 .setting-group {
@@ -94,6 +102,7 @@ html, body {
   margin-bottom: 8px;
   color: var(--text);
   font-weight: 500;
+  font-size: 14px;
 }
 
 .setting-group select,
@@ -109,6 +118,10 @@ html, body {
 
 .setting-group input[type="range"] {
   padding: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg);
+  outline: none;
 }
 
 .setting-group span {
@@ -116,7 +129,8 @@ html, body {
   margin-left: 10px;
   color: var(--muted);
   font-size: 14px;
-  min-width: 40px;
+  min-width: 50px;
+  text-align: right;
 }
 
 .settings-buttons {
@@ -129,66 +143,145 @@ html, body {
   flex: 1;
   padding: 12px;
   font-size: 16px;
+  border-radius: 8px;
 }
 
-/* Стили для разных форм кнопок */
-.btn-shape-rounded {
+/* ===== СИСТЕМА ФОРМ КНОПОК ===== */
+[data-button-shape="rounded"] .btn:not(.settings-buttons .btn) {
   border-radius: 12px;
 }
 
-.btn-shape-square {
+[data-button-shape="square"] .btn:not(.settings-buttons .btn) {
   border-radius: 4px;
 }
 
-.btn-shape-circle {
+[data-button-shape="circle"] .btn:not(.settings-buttons .btn) {
   border-radius: 50%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Стили для разных размеров кнопок */
-.btn-size-compact {
-  padding: 16px 10px;
-  font-size: 20px;
+/* ===== СИСТЕМА РАЗМЕРОВ КНОПОК ===== */
+[data-button-size="compact"] .btn:not(.settings-buttons .btn) {
+  min-height: 44px;
+  font-size: 18px;
 }
 
-.btn-size-standard {
-  padding: 20px 12px;
-  font-size: 24px;
+[data-button-size="standard"] .btn:not(.settings-buttons .btn) {
+  min-height: 56px;
+  font-size: 22px;
 }
 
-.btn-size-large {
-  padding: 24px 16px;
-  font-size: 28px;
+[data-button-size="large"] .btn:not(.settings-buttons .btn) {
+  min-height: 68px;
+  font-size: 26px;
 }
 
-/* Круглые кнопки с разными размерами */
-.btn-size-compact.btn-shape-circle {
-  padding: 12px;
+/* Специфичные размеры для круглых кнопок */
+[data-button-shape="circle"][data-button-size="compact"] .btn:not(.settings-buttons .btn) {
+  width: 44px;
+  height: 44px;
   font-size: 16px;
 }
 
-.btn-size-standard.btn-shape-circle {
-  padding: 16px;
+[data-button-shape="circle"][data-button-size="standard"] .btn:not(.settings-buttons .btn) {
+  width: 56px;
+  height: 56px;
   font-size: 20px;
 }
 
-.btn-size-large.btn-shape-circle {
-  padding: 20px;
+[data-button-shape="circle"][data-button-size="large"] .btn:not(.settings-buttons .btn) {
+  width: 68px;
+  height: 68px;
   font-size: 24px;
 }
 
-/* Кнопки в настройках - всегда скругленные */
-.settings-buttons .btn {
-  border-radius: 8px;
-  aspect-ratio: auto;
-  padding: 12px;
-  font-size: 16px;
+/* ===== БАЗОВЫЕ СТИЛИ КНОПОК ===== */
+.btn {
+  background: rgba(45, 45, 45, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(255,255,255,0.08);
+  touch-action: manipulation;
+  transform: translateZ(0);
+  transition: all 0.1s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2px;
+  opacity: var(--button-opacity, 85%);
 }
 
-/* Темы */
+.btn:not([data-button-shape="circle"]) {
+  padding: 0 16px;
+}
+
+/* Анимация при нажатии */
+.btn:active {
+  transform: scale(0.96) translateZ(0);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
+  background: rgba(30, 30, 30, 0.9);
+}
+
+/* Числовые кнопки */
+.btn.num {
+  background: rgba(45, 45, 45, 0.85);
+  font-weight: 600;
+}
+
+.btn.num:active {
+  background: rgba(30, 30, 30, 0.9);
+}
+
+/* Кнопки операторов и равно */
+.btn.op,
+.btn.right,
+.btn.equals {
+  background: var(--accent);
+  color: #111;
+  font-weight: 700;
+}
+
+.btn.op:active,
+.btn.right:active,
+.btn.equals:active {
+  background: #e6891a;
+}
+
+/* Красные кнопки управления */
+.btn[data-action="all-clear"],
+.btn[data-action="paren"],
+.btn[data-action="delete"],
+.btn[data-action="percent"],
+.btn[data-value="."] {
+  background: var(--danger);
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn[data-action="all-clear"]:active,
+.btn[data-action="paren"]:active,
+.btn[data-action="delete"]:active,
+.btn[data-action="percent"]:active,
+.btn[data-value="."]:active {
+  background: #cc0000;
+}
+
+/* Состояние фокуса для доступности */
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ===== СОВРЕМЕННЫЕ ТЕМЫ ===== */
+
+/* ТЕМНАЯ (базовая) */
 .theme-dark {
   --bg: #0f0f0f;
   --panel: #1d1d1d;
@@ -196,26 +289,32 @@ html, body {
   --text: #e9e9e9;
   --muted: #9b9b9b;
   --danger: #ff4e4e;
+  --success: #4caf50;
 }
 
+/* СВЕТЛАЯ */
 .theme-light {
-  --bg: #f5f5f5;
+  --bg: #f8f9fa;
   --panel: #ffffff;
-  --accent: #ff9a2a;
-  --text: #333333;
-  --muted: #666666;
-  --danger: #ff4e4e;
+  --accent: #007bff;
+  --text: #212529;
+  --muted: #6c757d;
+  --danger: #dc3545;
+  --success: #28a745;
 }
 
+/* AMOLED */
 .theme-amoled {
   --bg: #000000;
   --panel: #111111;
-  --accent: #ff9a2a;
+  --accent: #00ff88;
   --text: #ffffff;
   --muted: #666666;
-  --danger: #ff4e4e;
+  --danger: #ff375f;
+  --success: #00ff88;
 }
 
+/* СИНЯЯ */
 .theme-blue {
   --bg: #0a192f;
   --panel: #172a45;
@@ -223,9 +322,69 @@ html, body {
   --text: #e6f1ff;
   --muted: #8892b0;
   --danger: #ff4e4e;
+  --success: #64ffda;
 }
 
-/* Контейнер всего приложения */
+/* ПУРПУРНАЯ */
+.theme-purple {
+  --bg: #1a1a2e;
+  --panel: #16213e;
+  --accent: #e94560;
+  --text: #f0f0f0;
+  --muted: #8d93ab;
+  --danger: #e94560;
+  --success: #0fce7c;
+}
+
+/* ЗЕЛЕНАЯ */
+.theme-green {
+  --bg: #0d1b1e;
+  --panel: #1b2f33;
+  --accent: #70e000;
+  --text: #e9f5db;
+  --muted: #8a9b8f;
+  --danger: #ff5a5f;
+  --success: #70e000;
+}
+
+/* СОВРЕМЕННАЯ ОРАНЖЕВАЯ */
+.theme-modern-orange {
+  --bg: #1a1a1a;
+  --panel: #2d2d2d;
+  --accent: #ff6b35;
+  --text: #ffffff;
+  --muted: #b3b3b3;
+  --danger: #ff4757;
+  --success: #2ed573;
+}
+
+/* ГРАДИЕНТНАЯ */
+.theme-gradient {
+  --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --panel: rgba(255, 255, 255, 0.1);
+  --accent: #ffd93d;
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.7);
+  --danger: #ff6b6b;
+  --success: #51cf66;
+}
+
+/* Для градиентной темы */
+.theme-gradient body {
+  background: var(--bg);
+}
+
+.theme-gradient .calculator {
+  background: transparent;
+}
+
+.theme-gradient .btn {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== ОСНОВНОЙ ИНТЕРФЕЙС КАЛЬКУЛЯТОРА ===== */
 .calculator {
   max-width: 420px;
   margin: 0 auto;
@@ -317,81 +476,24 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Базовые стили кнопок */
-.btn {
-  background: rgba(45, 45, 45, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 20px 12px;
-  font-size: 24px;
-  color: var(--text);
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 -2px rgba(255,255,255,0.08);
-  touch-action: manipulation;
-  transform: translateZ(0);
-  transition: all 0.1s ease;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
+/* ===== ПОДСКАЗКА ИСТОРИИ ===== */
+.history-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted);
+  font-size: 16px;
+  text-align: center;
+  padding: 20px;
+  opacity: 0.7;
+  user-select: none;
+  pointer-events: none;
+  line-height: 1.4;
+  font-style: italic;
 }
 
-/* Анимация при нажатии */
-.btn:active {
-  transform: scale(0.96) translateZ(0);
-  box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 -1px rgba(255,255,255,0.1);
-  background: rgba(30, 30, 30, 0.9);
-}
-
-/* Числовые кнопки */
-.btn.num {
-  background: rgba(45, 45, 45, 0.85);
-  font-weight: 600;
-}
-
-.btn.num:active {
-  background: rgba(30, 30, 30, 0.9);
-}
-
-/* Кнопки операторов и равно */
-.btn.op,
-.btn.right,
-.btn.equals {
-  background: var(--accent);
-  color: #111;
-  font-weight: 700;
-}
-
-.btn.op:active,
-.btn.right:active,
-.btn.equals:active {
-  background: #e6891a;
-}
-
-/* Красные кнопки управления */
-.btn[data-action="all-clear"],
-.btn[data-action="paren"],
-.btn[data-action="delete"],
-.btn[data-action="percent"],
-.btn[data-value="."] {
-  background: var(--danger);
-  color: #fff;
-  font-weight: 600;
-}
-
-.btn[data-action="all-clear"]:active,
-.btn[data-action="paren"]:active,
-.btn[data-action="delete"]:active,
-.btn[data-action="percent"]:active,
-.btn[data-value="."]:active {
-  background: #cc0000;
-}
-
-/* Состояние фокуса для доступности */
-.btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Адаптивность для мобильных */
+/* ===== АДАПТИВНОСТЬ ===== */
 @media (max-width: 420px) {
   .calculator { 
     padding: 12px 10px; 
@@ -413,11 +515,6 @@ html, body {
   .history {
     font-size: 20px;
   }
-  .btn { 
-    padding: 18px 10px; 
-    font-size: 22px; 
-    border-radius: 10px;
-  }
   
   .settings-content {
     padding: 20px;
@@ -429,19 +526,21 @@ html, body {
   }
 }
 
-/* Оптимизация для слабых мобильных устройств */
-@media (max-device-width: 768px) and (max-device-height: 1024px) {
-  .btn {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+/* Для очень маленьких экранов */
+@media (max-width: 360px) {
+  .calculator { 
+    padding: 10px 8px; 
   }
-  
-  .settings-modal {
-    backdrop-filter: none;
+  .screen { 
+    font-size: 38px;
+    min-height: 50px;
   }
-  
-  .settings-btn {
-    backdrop-filter: none;
+  .history {
+    font-size: 18px;
+  }
+  .history-hint {
+    font-size: 14px;
+    padding: 15px;
   }
 }
 
@@ -450,49 +549,5 @@ html, body {
   .btn:active {
     transform: scale(0.96) translateZ(0);
     transition-duration: 0s;
-  }
-}
-/* СТИЛИ ДЛЯ ПОДСКАЗКИ ИСТОРИИ */
-.history-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--text-secondary);
-  font-size: 16px;
-  text-align: center;
-  padding: 20px;
-  opacity: 0.7;
-  user-select: none;
-  pointer-events: none;
-  line-height: 1.4;
-}
-
-/* Адаптация для разных тем */
-.theme-dark .history-hint {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.theme-light .history-hint {
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.theme-blue .history-hint {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Для мобильных устройств - адаптивный размер */
-@media (max-width: 480px) {
-  .history-hint {
-    font-size: 14px;
-    padding: 15px;
-  }
-}
-
-/* Для очень маленьких экранов */
-@media (max-width: 360px) {
-  .history-hint {
-    font-size: 13px;
-    padding: 10px;
   }
 }
