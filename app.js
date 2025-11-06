@@ -296,12 +296,12 @@ function addHistoryItem(input, result) {
   saveHistory();
 }
 
-/* Проверка синтаксиса - ПОЛНАЯ ЗАЩИТА */
+/* Проверка синтаксиса - УСИЛЕННАЯ ВАЛИДАЦИЯ */
 function validateExpression(displayExpr) {
   if (!displayExpr) return false;
   
-  // Нельзя начинать с × или ÷
-  if (displayExpr.startsWith('×') || displayExpr.startsWith('÷')) {
+  // Нельзя начинать с × или ÷ или +
+  if (displayExpr.startsWith('×') || displayExpr.startsWith('÷') || displayExpr.startsWith('+')) {
     return false;
   }
   
@@ -329,8 +329,8 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // После ( нельзя ставить × или ÷
-  if (displayExpr.includes('(×') || displayExpr.includes('(÷')) {
+  // После ( нельзя ставить × или ÷ или +
+  if (displayExpr.includes('(×') || displayExpr.includes('(÷') || displayExpr.includes('(+')) {
     return false;
   }
   
@@ -341,57 +341,48 @@ function validateExpression(displayExpr) {
     return false;
   }
   
-  // Запрет невалидных комбинаций операторов
-  if (/([+×÷])\1/.test(displayExpr)) {
+  // ЗАПРЕТ: множественные операторы (кроме унарного минуса)
+  if (/([+×÷][+×÷])/.test(displayExpr)) {
     return false;
   }
   
-  if (/[×÷][+×÷]/.test(displayExpr)) {
-    return false;
-  }
-  
-  // Запрет тройных операторов
-  if (/[+−×÷]{3,}/.test(displayExpr)) {
-    return false;
-  }
-  
-  // Запрет операторов в конце
+  // ЗАПРЕТ: операторы в конце
   if (/[+×÷]$/.test(displayExpr)) {
     return false;
   }
   
-  // Запрет конструкций типа /-6/-9
-  if (/[×÷]-?\d+[×÷]/.test(displayExpr)) {
+  // ЗАПРЕТ: два оператора деления/умножения подряд
+  if (/[×÷][×÷]/.test(displayExpr)) {
     return false;
   }
   
-  // Запрет двух операторов деления/умножения с минусом между ними
-  if (/[×÷]-[×÷]/.test(displayExpr)) {
+  // ЗАПРЕТ: оператор сразу после открывающей скобки (кроме унарного минуса)
+  if (/\([+×÷]/.test(displayExpr)) {
     return false;
   }
   
-  // Запрет бессмысленных выражений с множественными нулями
+  // ЗАПРЕТ: бессмысленные выражения с множественными нулями
   if (/[×÷]-?0[×÷]-?0/.test(displayExpr)) {
     return false;
   }
   
-  // Запрет множественных унарных минусов
+  // ЗАПРЕТ: множественные унарные минусы (больше одного подряд)
   if (/−−\d/.test(displayExpr)) {
     return false;
   }
   
-  // Запрет ведущих нулей
+  // ЗАПРЕТ: ведущие нули
   if (/\D0\d/.test(displayExpr)) {
     return false;
   }
 
-  // Запрет двух операторов деления подряд без скобок
-  if (/÷[^()0-9]*÷/.test(displayExpr)) {
+  // ЗАПРЕТ: деление сразу после деления
+  if (/÷\s*÷/.test(displayExpr)) {
     return false;
   }
-
-  // Запрет деления сразу после деления
-  if (/÷\s*÷/.test(displayExpr)) {
+  
+  // ЗАПРЕТ: выражения, заканчивающиеся на оператор
+  if (/[+×÷−]$/.test(displayExpr)) {
     return false;
   }
   
@@ -418,14 +409,32 @@ function sanitizeForCalc(displayExpr) {
   return s;
 }
 
+/* Нормализация выражения перед вычислением */
+function normalizeExpression(expr) {
+  // Заменяем унарные минусы на специальный маркер для избежания конфликтов
+  let normalized = expr
+    .replace(/([×÷+])−/g, '$1~')  // Заменяем унарные минусы после операторов
+    .replace(/^−/, '~')           // Заменяем унарный минус в начале
+    .replace(/\(−/g, '(~');       // Заменяем унарные минусы после скобок
+  
+  return normalized;
+}
+
 /* Безопасное вычисление */
 function safeEval(displayExpr) {
   if (!validateExpression(displayExpr)) {
     return null;
   }
   
-  const jsExpr = sanitizeForCalc(displayExpr);
+  let jsExpr = sanitizeForCalc(displayExpr);
   if (!jsExpr) return null;
+
+  // Нормализуем выражение
+  jsExpr = normalizeExpression(jsExpr)
+    .replace(/×/g, '*')
+    .replace(/÷/g, '/')
+    .replace(/~/g, '-u')  // Временная замена унарных минусов
+    .replace(/-u/g, '-'); // Возвращаем обычные минусы
 
   try {
     const result = Function('"use strict";return(' + jsExpr + ')')();
@@ -449,7 +458,7 @@ function safeEval(displayExpr) {
   }
 }
 
-/* Вставка символа - ПОЛНАЯ ЗАЩИТА */
+/* Вставка символа - ИСПРАВЛЕННАЯ ВАЛИДАЦИЯ ОПЕРАТОРОВ */
 function insertChar(ch) {
   if (errorState) {
     hideError();
@@ -458,22 +467,39 @@ function insertChar(ch) {
   const lastChar = expr.slice(-1);
   const ops = ['+', '−', '×', '÷'];
   
-  // СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с операторов
+  // СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с операторов ×÷+
   if (!expr && (ch === '×' || ch === '÷' || ch === '+')) {
     return;
   }
   
-  // После ( нельзя ставить × или ÷
-  if (lastChar === '(' && (ch === '×' || ch === '÷')) {
+  // После ( нельзя ставить × или ÷ или +
+  if (lastChar === '(' && (ch === '×' || ch === '÷' || ch === '+')) {
     return;
   }
   
-  // Запрет унарного минуса после оператора
-  if (lastChar === '−' && (ch === '×' || ch === '÷')) {
+  // ЗАПРЕТ: оператор после оператора (кроме унарного минуса)
+  if (ops.includes(lastChar) && ops.includes(ch)) {
+    // Разрешаем только унарный минус после других операторов
+    if (ch === '−') {
+      // Но запрещаем двойной унарный минус
+      if (lastChar === '−') return;
+      
+      // Разрешаем конструкции типа: 6/-3, 6×-3 и т.д.
+      expr += ch;
+    } else {
+      // Заменяем предыдущий оператор на новый
+      expr = expr.slice(0, -1) + ch;
+    }
+    renderScreen();
     return;
   }
   
-  // СУПЕР ЗАЩИТА: Проверка всей комбинации при вводе
+  // ЗАПРЕТ: оператор после открывающей скобки (кроме унарного минуса)
+  if (lastChar === '(' && ops.includes(ch) && ch !== '−') {
+    return;
+  }
+  
+  // Проверка всей комбинации при вводе
   const newExpr = expr + ch;
   
   // Запрет деления на ноль при вводе
@@ -481,55 +507,21 @@ function insertChar(ch) {
     return;
   }
   
-  // Запрет невалидных комбинаций операторов
-  if (/([+×÷])\1/.test(newExpr)) {
+  // Запрет невалидных комбинаций операторов в середине выражения
+  if (/([+×÷][+×÷])/.test(newExpr)) {
     return;
   }
   
-  if (/[×÷][+×÷]/.test(newExpr)) {
+  // Запрет тройных операторов
+  if (/[+−×÷]{3,}/.test(newExpr)) {
     return;
   }
   
-  // Запрет конструкций типа /-6/-9
-  if (/[×÷]-?\d+[×÷]/.test(newExpr)) {
-    return;
-  }
-  
-  // Обработка операторов с разрешением унарных минусов
-  if (ops.includes(lastChar) && ops.includes(ch)) {
-    // Запрет ввода второго оператора деления сразу после первого
-    if (lastChar === '÷' && ch === '÷') {
-      return;
-    }
-    
-    const operatorsMatch = expr.match(/[+−×÷]+$/);
-    const currentOperators = operatorsMatch ? operatorsMatch[0] : '';
-    const newSequence = currentOperators + ch;
-    
-    // Запрещаем последовательности из 3+ операторов
-    if (newSequence.length >= 3) {
-      return;
-    }
-    
-    // Запрет множественных унарных минусов
-    if (currentOperators.includes('−') && ch === '−') {
-      return;
-    }
-    
-    const validCombinations = ['+−', '−+', '×−', '÷−'];
-    const currentCombination = lastChar + ch;
-    
-    if (validCombinations.includes(currentCombination)) {
-      expr += ch;
-    } else {
-      expr = expr.slice(0, -1) + ch;
-    }
-  } 
-  else if (readyForNewInput && ops.includes(ch)) {
+  // Обработка readyForNewInput
+  if (readyForNewInput && ops.includes(ch)) {
     expr += ch;
     readyForNewInput = false;
-  }
-  else {
+  } else {
     expr += ch;
   }
   
