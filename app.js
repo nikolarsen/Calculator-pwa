@@ -697,7 +697,7 @@ function handleDelete() {
 /* Очистка - ПРОФЕССИОНАЛЬНАЯ С ВИЗУАЛЬНОЙ ОБРАТНОЙ СВЯЗЬЮ */
 function handleAllClear(longPress = false) {
   if (longPress) {
-    screen.textContent = 'История очищена';
+    screen.textContent = 'Удаление';
     screen.style.color = 'var(--accent)';
     
     setTimeout(() => {
