@@ -22,9 +22,40 @@ const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
 
-// Звуки
+// Звуковая система
 let soundEnabled = false;
-const clickSound = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==");
+let audioContext;
+
+function initAudio() {
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (error) {
+        console.log('Audio not supported');
+    }
+}
+
+function playSound() {
+    if (!soundEnabled || !audioContext) return;
+    
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (error) {
+        // Игнорируем ошибки аудио
+    }
+}
 
 let expr = '';
 let readyForNewInput = false;
@@ -36,7 +67,7 @@ let errorState = false;
 const historyHint = document.createElement('div');
 historyHint.className = 'history-hint';
 historyHint.textContent = 'Подсказка: Удерживайте AC для очистки истории';
-historyHint.setAttribute('aria-label', 'Подсказка: Удержижите AC для очистки истории');
+historyHint.setAttribute('aria-label', 'Подсказка: Удерживайте AC для очистки истории');
 
 /* ===== НАСТРОЙКИ - Загрузка и применение ===== */
 function loadSettings() {
@@ -323,97 +354,111 @@ function addHistoryItem(input, result) {
     updateHistoryHint();
 }
 
-/* ===== ПРОВЕРКА СИНТАКСИСА - УСИЛЕННАЯ ВАЛИДАЦИЯ ===== */
-function validateExpression(displayExpr) {
-    if (!displayExpr) return false;
+/* ===== УЛУЧШЕННАЯ ВАЛИДАЦИЯ ОПЕРАТОРОВ ===== */
+function canAddOperator(char, currentExpr) {
+    if (!currentExpr) return false;
     
-    // Нельзя начинать с × или ÷ или +
-    if (displayExpr.startsWith('×') || displayExpr.startsWith('÷') || displayExpr.startsWith('+')) {
+    const lastChar = currentExpr.slice(-1);
+    const operators = ['+', '−', '×', '÷'];
+    
+    // Нельзя добавлять оператор если:
+    // 1. Выражение пустое
+    if (!currentExpr) return false;
+    
+    // 2. Последний символ уже оператор (кроме унарного минуса)
+    if (operators.includes(lastChar)) {
+        return char === '−'; // Разрешаем только унарный минус после оператора
+    }
+    
+    // 3. Последний символ открывающая скобка (кроме унарного минуса)
+    if (lastChar === '(' && char !== '−') {
         return false;
     }
     
-    // Строгая проверка на деление на ноль
-    if (displayExpr.match(/÷\s*-?\s*0/)) {
-        const zeroDivisionMatches = displayExpr.match(/÷\s*(-?\s*0[^.]?)/g);
-        if (zeroDivisionMatches) {
-            for (const match of zeroDivisionMatches) {
-                const afterZero = match.replace(/÷\s*(-?\s*0)/, '');
-                if (afterZero && !afterZero.startsWith('.') && !/[)+×÷]/.test(afterZero[0])) {
-                    return false;
-                }
-            }
-        }
-        return false;
-    }
-    
-    // Проверка на двойные операторы в конце
-    if (/[+−×÷]=?$/.test(displayExpr)) {
-        return false;
-    }
-    
-    // Проверка на пустые скобки
-    if (displayExpr.includes('()')) {
-        return false;
-    }
-    
-    // После ( нельзя ставить × или ÷ или +
-    if (displayExpr.includes('(×') || displayExpr.includes('(÷') || displayExpr.includes('(+')) {
-        return false;
-    }
-    
-    // Проверка на незакрытые скобки
-    const open = (displayExpr.match(/\(/g) || []).length;
-    const close = (displayExpr.match(/\)/g) || []).length;
-    if (open !== close) {
-        return false;
-    }
-    
-    // ЗАПРЕТ: множественные операторы (кроме унарного минуса)
-    if (/([+×÷][+×÷])/.test(displayExpr)) {
-        return false;
-    }
-    
-    // ЗАПРЕТ: операторы в конце
-    if (/[+×÷]$/.test(displayExpr)) {
-        return false;
-    }
-    
-    // ЗАПРЕТ: два оператора деления/умножения подряд
-    if (/[×÷][×÷]/.test(displayExpr)) {
-        return false;
-    }
-    
-    // ЗАПРЕТ: оператор сразу после открывающей скобки (кроме унарного минуса)
-    if (/\([+×÷]/.test(displayExpr)) {
-        return false;
-    }
-    
-    // ЗАПРЕТ: бессмысленные выражения с множественными нулями
-    if (/[×÷]-?0[×÷]-?0/.test(displayExpr)) {
-        return false;
-    }
-    
-    // ЗАПРЕТ: множественные унарные минусы (больше одного подряд)
-    if (/−−\d/.test(displayExpr)) {
-        return false;
-    }
-    
-    // ЗАПРЕТ: ведущие нули
-    if (/\D0\d/.test(displayExpr)) {
-        return false;
-    }
-
-    // ЗАПРЕТ: деление сразу после деления
-    if (/÷\s*÷/.test(displayExpr)) {
-        return false;
-    }
-    
-    // ЗАПРЕТ: выражения, заканчивающиеся на оператор
-    if (/[+×÷−]$/.test(displayExpr)) {
+    // 4. После точки нельзя оператор (кроме унарного минуса)
+    if (lastChar === '.' && char !== '−') {
         return false;
     }
     
     return true;
+}
+
+/* ===== ПРОВЕРКА СИНТАКСИСА - УСИЛЕННАЯ ВАЛИДАЦИЯ ===== */
+function validateExpression(displayExpr) {
+    if (!displayExpr) return false;
+    
+    const validations = [
+        // Нельзя начинать с × или ÷ или +
+        () => !/^[×÷+]/.test(displayExpr),
+        
+        // Строгая проверка на деление на ноль
+        () => {
+            if (displayExpr.match(/÷\s*-?\s*0/)) {
+                const zeroDivisionMatches = displayExpr.match(/÷\s*(-?\s*0[^.]?)/g);
+                if (zeroDivisionMatches) {
+                    for (const match of zeroDivisionMatches) {
+                        const afterZero = match.replace(/÷\s*(-?\s*0)/, '');
+                        if (afterZero && !afterZero.startsWith('.') && !/[)+×÷]/.test(afterZero[0])) {
+                            return false;
+                        }
+                    }
+                }
+                return false;
+            }
+            return true;
+        },
+        
+        // Проверка на двойные операторы в конце
+        () => !/[+−×÷]=?$/.test(displayExpr),
+        
+        // Проверка на пустые скобки
+        () => !displayExpr.includes('()'),
+        
+        // После ( нельзя ставить × или ÷ или +
+        () => !displayExpr.includes('(×') && !displayExpr.includes('(÷') && !displayExpr.includes('(+'),
+        
+        // Проверка на незакрытые скобки
+        () => {
+            const open = (displayExpr.match(/\(/g) || []).length;
+            const close = (displayExpr.match(/\)/g) || []).length;
+            return open === close;
+        },
+        
+        // ЗАПРЕТ: множественные операторы (кроме унарного минуса)
+        () => !/([+×÷][+×÷])/.test(displayExpr),
+        
+        // ЗАПРЕТ: операторы в конце
+        () => !/[+×÷]$/.test(displayExpr),
+        
+        // ЗАПРЕТ: два оператора деления/умножения подряд
+        () => !/[×÷][×÷]/.test(displayExpr),
+        
+        // ЗАПРЕТ: оператор сразу после открывающей скобки (кроме унарного минуса)
+        () => !/\([+×÷]/.test(displayExpr),
+        
+        // ЗАПРЕТ: бессмысленные выражения с множественными нулями
+        () => !/[×÷]-?0[×÷]-?0/.test(displayExpr),
+        
+        // ЗАПРЕТ: множественные унарные минусы (больше одного подряд)
+        () => !/−−\d/.test(displayExpr),
+        
+        // ЗАПРЕТ: ведущие нули
+        () => !/\D0\d/.test(displayExpr),
+
+        // ЗАПРЕТ: деление сразу после деления
+        () => !/÷\s*÷/.test(displayExpr),
+        
+        // ЗАПРЕТ: выражения, заканчивающиеся на оператор
+        () => !/[+×÷−]$/.test(displayExpr),
+        
+        // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: нельзя два оператора подряд (кроме унарного минуса)
+        () => !/([+×÷][+×÷])/.test(displayExpr),
+        
+        // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: оператор после точки
+        () => !/\.[+×÷]/.test(displayExpr)
+    ];
+    
+    return validations.every(validation => validation());
 }
 
 /* ===== ПОДГОТОВКА ВЫРАЖЕНИЯ - ПРОФЕССИОНАЛЬНЫЕ ПРОЦЕНТЫ ===== */
@@ -489,6 +534,13 @@ function insertChar(ch) {
         hideError();
     }
     
+    // Проверяем можно ли добавить оператор
+    if (['+', '−', '×', '÷'].includes(ch)) {
+        if (!canAddOperator(ch, expr)) {
+            return;
+        }
+    }
+    
     const lastChar = expr.slice(-1);
     const ops = ['+', '−', '×', '÷'];
     
@@ -502,20 +554,18 @@ function insertChar(ch) {
         return;
     }
     
-    // ЗАПРЕТ: оператор после оператора (кроме унарного минуса)
+    // Обработка операторов после операторов
     if (ops.includes(lastChar) && ops.includes(ch)) {
+        // Разрешаем только унарный минус после других операторов
         if (ch === '−') {
+            // Но запрещаем двойной унарный минус
             if (lastChar === '−') return;
             expr += ch;
         } else {
+            // Заменяем предыдущий оператор на новый
             expr = expr.slice(0, -1) + ch;
         }
         renderScreen();
-        return;
-    }
-    
-    // ЗАПРЕТ: оператор после открывающей скобки (кроме унарного минуса)
-    if (lastChar === '(' && ops.includes(ch) && ch !== '−') {
         return;
     }
     
@@ -524,16 +574,6 @@ function insertChar(ch) {
     
     // Запрет деления на ноль при вводе
     if (newExpr.includes('÷0') && !newExpr.includes('÷0.')) {
-        return;
-    }
-    
-    // Запрет невалидных комбинаций операторов в середине выражения
-    if (/([+×÷][+×÷])/.test(newExpr)) {
-        return;
-    }
-    
-    // Запрет тройных операторов
-    if (/[+−×÷]{3,}/.test(newExpr)) {
         return;
     }
     
@@ -706,16 +746,6 @@ function handleAllClear(longPress = false) {
     }
 }
 
-/* ===== ЗВУКИ ===== */
-function playSound() {
-    if (soundEnabled) {
-        clickSound.currentTime = 0;
-        clickSound.play().catch(() => {
-            // Игнорируем ошибки воспроизведения звука
-        });
-    }
-}
-
 /* ===== ВИБРАЦИЯ ===== */
 function vibrate() {
     if (navigator.vibrate && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
@@ -856,6 +886,7 @@ document.addEventListener('keydown', (e) => {
 
 /* ===== ИНИЦИАЛИЗАЦИЯ ===== */
 document.addEventListener('DOMContentLoaded', () => {
+    initAudio();
     loadSettings();
     loadHistory();
     renderScreen();
