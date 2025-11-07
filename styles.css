@@ -440,7 +440,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(5, 1fr); /* ИЗМЕНИТЬ: 1fr вместо 60px */
-  gap: 6px; /* Теперь gap работает и по вертикали и по горизонтали */
+  gap: 4px; /* Теперь gap работает и по вертикали и по горизонтали */
   flex: 0 0 auto;
   margin: 0;
   width: 100%;
