@@ -22,38 +22,31 @@ const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
 
-// Звуковая система
+// Звуковая система - ПРОСТАЯ И РАБОЧАЯ
 let soundEnabled = false;
-let audioContext;
-
-function initAudio() {
-    try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (error) {
-        console.log('Audio not supported');
-    }
-}
 
 function playSound() {
-    if (!soundEnabled || !audioContext) return;
+    if (!soundEnabled) return;
     
     try {
+        // Создаем простой звук через Web Audio API
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        oscillator.frequency.value = 800;
+        oscillator.frequency.value = 600;
         oscillator.type = 'sine';
         
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
         
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
     } catch (error) {
-        // Игнорируем ошибки аудио
+        console.log('Audio error:', error);
     }
 }
 
@@ -163,15 +156,26 @@ function resetSettingsToDefault() {
 }
 
 function applyButtonShape(shape) {
-    document.body.setAttribute('data-button-shape', shape);
+    const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
+    buttons.forEach(btn => {
+        btn.classList.remove('btn-shape-rounded', 'btn-shape-square', 'btn-shape-circle');
+        btn.classList.add(`btn-shape-${shape}`);
+    });
 }
 
 function applyButtonSize(size) {
-    document.body.setAttribute('data-button-size', size);
+    const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
+    buttons.forEach(btn => {
+        btn.classList.remove('btn-size-compact', 'btn-size-standard', 'btn-size-large');
+        btn.classList.add(`btn-size-${size}`);
+    });
 }
 
 function applyButtonOpacity(opacity) {
-    document.body.style.setProperty('--button-opacity', `${opacity}%`);
+    const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
+    buttons.forEach(btn => {
+        btn.style.opacity = `${opacity}%`;
+    });
 }
 
 /* ===== УПРАВЛЕНИЕ ПОДСКАЗКОЙ ИСТОРИИ ===== */
@@ -886,7 +890,6 @@ document.addEventListener('keydown', (e) => {
 
 /* ===== ИНИЦИАЛИЗАЦИЯ ===== */
 document.addEventListener('DOMContentLoaded', () => {
-    initAudio();
     loadSettings();
     loadHistory();
     renderScreen();
