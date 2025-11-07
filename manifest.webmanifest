@@ -8,6 +8,7 @@
   "orientation": "portrait",
   "background_color": "#0f0f0f",
   "theme_color": "#111111",
+  "permissions": ["audio-capture"]
   "categories": ["utilities", "productivity"],
   "lang": "ru",
   "dir": "ltr",
