@@ -21,60 +21,57 @@ const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 
-// ЗВУКОВАЯ СИСТЕМА - Web Audio API (работает на iOS)
+// ЗВУКОВАЯ СИСТЕМА ДЛЯ SAFARI PWA
 let audioContext = null;
-let clickBuffer = null;
+let isAudioAllowed = false;
 
-function initAudio() {
+// Функция для разблокировки аудио в Safari
+function unlockAudio() {
+    if (isAudioAllowed) return;
+    
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Создаем простой щелчок
-        const duration = 0.1;
-        const sampleRate = audioContext.sampleRate;
-        const frameCount = sampleRate * duration;
-        const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
-        const data = buffer.getChannelData(0);
+        // Создаем и сразу воспроизводим тихий звук чтобы разблокировать аудио
+        const buffer = audioContext.createBuffer(1, 1, 22050);
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start();
         
-        for (let i = 0; i < frameCount; i++) {
-            data[i] = Math.random() * 2 - 1; // Белый шум
-        }
-        
-        clickBuffer = buffer;
+        isAudioAllowed = true;
+        console.log('Audio unlocked for Safari');
     } catch (e) {
-        console.log('Audio not supported');
+        console.log('Audio unlock failed');
     }
 }
 
 function playSound() {
+    if (!isAudioAllowed) return;
+    
     try {
-        if (!audioContext) {
-            initAudio();
-        }
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
         
-        if (audioContext && clickBuffer) {
-            const source = audioContext.createBufferSource();
-            source.buffer = clickBuffer;
-            
-            const gainNode = audioContext.createGain();
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Тихий звук
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-            
-            source.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            source.start();
-        }
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
     } catch (error) {
         // Игнорируем ошибки
     }
 }
 
-// ВИБРАЦИЯ - с проверкой поддержки
+// ВИБРАЦИЯ ДЛЯ iOS
 function playVibration() {
     try {
-        if (navigator.vibrate && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
-            // Для iOS вибрация может не работать в браузере, но пробуем
+        // На iOS вибрация в браузере работает только при определенных условиях
+        if (navigator.vibrate) {
             navigator.vibrate(10);
         }
     } catch (error) {
@@ -87,13 +84,9 @@ function handleButtonClick() {
     playVibration();
 }
 
-// Инициализируем аудио при первом касании
-document.addEventListener('touchstart', function initOnTouch() {
-    if (!audioContext) {
-        initAudio();
-    }
-    document.removeEventListener('touchstart', initOnTouch);
-});
+// РАЗБЛОКИРОВКА АУДИО ПРИ ПЕРВОМ КАСАНИИ
+document.addEventListener('touchstart', unlockAudio);
+document.addEventListener('click', unlockAudio);
 
 let expr = '';
 let readyForNewInput = false;
