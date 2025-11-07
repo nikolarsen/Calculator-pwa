@@ -403,15 +403,6 @@ html, body {
   bottom: 0;
 }
 
-/* Верхняя часть с историей */
-.topbar {
-  flex: 0 0 auto;
-  min-height: 100px;
-  max-height: 150px;
-  overflow-y: auto;
-  margin-bottom: 10px;
-}
-
 /* История */
 .history {
   color: var(--muted);
@@ -439,6 +430,14 @@ html, body {
 .history::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
+/* Верхняя часть с историей */
+.topbar {
+  flex: 0 0 auto;
+  min-height: 100px;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
 
 /* Экран */
 .screen {
@@ -449,6 +448,17 @@ html, body {
   min-height: 60px;
   flex: 0 0 auto;
   margin-bottom: 10px;
+}
+
+/* Клавиши */
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, minmax(50px, 1fr));
+  gap: 8px;
+  flex: 0 0 auto; /* ИЗМЕНИЛИ: вместо flex: 1 */
+  min-height: 0;
+  margin-top: 10px; /* ИЗМЕНИЛИ: вместо margin-top: auto */
 }
 
 /* Авто-масштабирование шрифта для длинных чисел */
@@ -463,17 +473,7 @@ html, body {
 .screen.extremely-long-number {
   font-size: 18px;
 }
-/* Клавиши */
-/* Клавиши */
-.keys {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, minmax(50px, 1fr));
-  gap: 8px;
-  flex: 1;
-  min-height: 0;
-  margin-top: auto;
-}
+
 
 /* Фикс для очень высоких экранов в PWA */
 @media (min-height: 800px) and (display-mode: standalone) {
