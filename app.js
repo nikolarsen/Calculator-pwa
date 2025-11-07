@@ -22,52 +22,24 @@ const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
 
-// Звуковая система - ДЛЯ PWA
+// Звуковая система - ДЛЯ IPHONE
 let soundEnabled = false;
 let audio = null;
-let audioActivated = false;
-
-function activateAudioForPWA() {
-    if (audioActivated) return;
-    
-    try {
-        // Создаем и сразу воспроизводим тихий звук при первом клике
-        audio = new Audio();
-        audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
-        audio.volume = 0.001; // Почти неслышно
-        audio.play().then(() => {
-            audioActivated = true;
-            console.log('✅ Audio activated for PWA');
-        }).catch(() => {
-            // Игнорируем ошибку первого воспроизведения
-        });
-    } catch (error) {
-        console.log('Audio activation error');
-    }
-}
 
 function playSound() {
     if (!soundEnabled) return;
-    
-    // Активируем аудио при первом клике в PWA
-    if (!audioActivated) {
-        activateAudioForPWA();
-        return; // Пропускаем первый звук
-    }
     
     try {
         if (!audio) {
             audio = new Audio();
             audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
-            audio.volume = 0.3;
+            audio.volume = 0.5;
         }
         
         audio.currentTime = 0;
-        audio.play().catch(() => {
-            // Игнорируем ошибки воспроизведения
-        });
+        audio.play();
     } catch (error) {
-        console.log('Sound play error');
+        // Игнорируем ошибки
     }
 }
 
@@ -753,13 +725,6 @@ function handleAllClear(longPress = false) {
     }
 }
 
-/* ===== ВИБРАЦИЯ ===== */
-function vibrate() {
-    if (navigator.vibrate && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
-        navigator.vibrate(10);
-    }
-}
-
 /* ===== ОБРАБОТКА КЛИКОВ ПО КНОПКАМ ===== */
 keys.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-value], button[data-action]');
@@ -768,7 +733,6 @@ keys.addEventListener('click', (e) => {
     const val = btn.dataset.value;
     const action = btn.dataset.action;
 
-    vibrate();
     playSound();
 
     if (action) {
@@ -836,7 +800,6 @@ historyEl.addEventListener('click', (e) => {
         readyForNewInput = false;
         renderScreen();
         
-        vibrate();
         playSound();
     } catch (error) {
         // Ничего не делаем при ошибке выбора из истории
@@ -850,7 +813,6 @@ const acBtn = document.querySelector('[data-action="all-clear"]');
 acBtn.addEventListener('touchstart', () => {
     acTimer = setTimeout(() => {
         handleAllClear(true);
-        if (navigator.vibrate) navigator.vibrate(50);
     }, 700);
 });
 
