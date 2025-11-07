@@ -906,12 +906,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScreen();
     updateHistoryHint();
     setTimeout(initAudio, 1000);
-
-    // ==== PWA УСТАНОВКА ====
-let deferredPrompt;
+// ==== PWA УСТАНОВКА ====
+let deferredPrompt = null;
 const installButton = document.createElement('button');
 
-function createInstallButton() {
+function showInstallButton() {
     installButton.innerHTML = '📱 Установить приложение';
     installButton.style.cssText = `
         position: fixed;
@@ -928,76 +927,147 @@ function createInstallButton() {
         z-index: 1000;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         transition: all 0.3s ease;
+        font-family: inherit;
     `;
     
-    installButton.addEventListener('click', async () => {
+    installButton.onclick = async () => {
         if (deferredPrompt) {
+            // Android/Chrome - стандартная установка
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                installButton.style.display = 'none';
-            }
+            console.log('Установка:', outcome);
+            hideInstallButton();
             deferredPrompt = null;
+        } else {
+            // iOS/другие браузеры - показать инструкцию
+            showInstallInstructions();
         }
-    });
+    };
     
-    installButton.addEventListener('mouseenter', () => {
+    installButton.onmouseenter = () => {
         installButton.style.transform = 'scale(1.05)';
         installButton.style.background = '#e6891a';
-    });
+    };
     
-    installButton.addEventListener('mouseleave', () => {
+    installButton.onmouseleave = () => {
         installButton.style.transform = 'scale(1)';
         installButton.style.background = 'var(--accent)';
-    });
+    };
     
-    document.body.appendChild(installButton);
-    installButton.style.display = 'none';
+    if (!installButton.parentElement) {
+        document.body.appendChild(installButton);
+    }
+    installButton.style.display = 'block';
 }
 
-// Показываем кнопку установки когда доступно
+function hideInstallButton() {
+    if (installButton.parentElement) {
+        installButton.style.display = 'none';
+    }
+}
+
+function showInstallInstructions() {
+    // Создаем модальное окно с инструкциями
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    `;
+    
+    const content = document.createElement('div');
+    content.style.cssText = `
+        background: var(--panel);
+        padding: 24px;
+        border-radius: 16px;
+        max-width: 320px;
+        text-align: center;
+        color: var(--text);
+    `;
+    
+    content.innerHTML = `
+        <h3 style="margin: 0 0 16px 0;">📱 Установка приложения</h3>
+        <p style="margin: 0 0 20px 0; line-height: 1.4;">
+            <strong>Для iOS:</strong><br>
+            Нажмите "Поделиться" 📤<br>
+            → "На экран «Домой»"
+        </p>
+        <p style="margin: 0 0 20px 0; line-height: 1.4;">
+            <strong>Для Android:</strong><br>
+            Нажмите "⋮" (Меню)<br>
+            → "Добавить на главный экран"
+        </p>
+        <button onclick="this.closest('div').parentElement.remove()" 
+                style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+            Понятно
+        </button>
+    `;
+    
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+    
+    // Закрытие по клику вне окна
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    };
+}
+
+// Событие для Android/Chrome
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    console.log('PWA установка доступна');
     
-    if (!installButton.parentElement) {
-        createInstallButton();
+    // Показываем кнопку через 3 секунды
+    setTimeout(showInstallButton, 3000);
+});
+
+// Событие после установки
+window.addEventListener('appinstalled', () => {
+    console.log('PWA установлено');
+    deferredPrompt = null;
+    hideInstallButton();
+});
+
+// Проверяем режим отображения
+function isRunningAsPWA() {
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           window.navigator.standalone === true;
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    // Если уже PWA - не показываем кнопку
+    if (isRunningAsPWA()) {
+        console.log('Уже работает как PWA');
+        return;
     }
     
-    // Показываем кнопку через 3 секунды после загрузки
-    setTimeout(() => {
-        installButton.style.display = 'block';
-        
-        // Авто-скрытие через 10 секунд
-        setTimeout(() => {
-            if (installButton.style.display !== 'none') {
-                installButton.style.display = 'none';
-            }
-        }, 10000);
-    }, 3000);
+    // Проверяем поддержку PWA
+    if ('BeforeInstallPromptEvent' in window) {
+        console.log('Браузер поддерживает PWA установку');
+        // Кнопка появится при beforeinstallprompt
+    } else {
+        // Браузер не поддерживает автоматическую установку
+        console.log('Показываем кнопку с инструкциями');
+        setTimeout(showInstallButton, 3000);
+    }
 });
 
-// Скрываем кнопку после установки
-window.addEventListener('appinstalled', () => {
-    installButton.style.display = 'none';
-    deferredPrompt = null;
-});
+// Также проверяем при каждом запуске
+setTimeout(() => {
+    if (!isRunningAsPWA() && !deferredPrompt) {
+        showInstallButton();
+    }
+}, 5000);
 
-// Проверяем если уже установлено как PWA
-if (window.matchMedia('(display-mode: standalone)').matches || 
-    window.navigator.standalone === true) {
-    // Уже установлено - не показываем кнопку
-} else {
-    // Не установлено - создаем кнопку
-    createInstallButton();
-}
-
-// Также показываем кнопку при загрузке если PWA доступно
-if ('BeforeInstallPromptEvent' in window) {
-    setTimeout(() => {
-        if (installButton.parentElement && !deferredPrompt) {
-            installButton.style.display = 'block';
-        }
-    }, 3000);
-}
 });
