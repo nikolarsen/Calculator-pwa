@@ -7,7 +7,6 @@
   --muted: #9b9b9b;
   --danger: #ff4e4e;
   --success: #4caf50;
-  --button-opacity: 85%;
   
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -146,57 +145,62 @@ html, body {
   border-radius: 8px;
 }
 
-/* ===== СИСТЕМА ФОРМ КНОПОК ===== */
-[data-button-shape="rounded"] .btn:not(.settings-buttons .btn) {
-  border-radius: 12px;
+/* ===== СИСТЕМА ФОРМ КНОПОК - УПРОЩЕННАЯ ===== */
+.btn-shape-rounded {
+  border-radius: 12px !important;
 }
 
-[data-button-shape="square"] .btn:not(.settings-buttons .btn) {
-  border-radius: 4px;
+.btn-shape-square {
+  border-radius: 4px !important;
 }
 
-[data-button-shape="circle"] .btn:not(.settings-buttons .btn) {
-  border-radius: 50%;
-  aspect-ratio: 1;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.btn-shape-circle {
+  border-radius: 50% !important;
+  aspect-ratio: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-/* ===== СИСТЕМА РАЗМЕРОВ КНОПОК ===== */
-[data-button-size="compact"] .btn:not(.settings-buttons .btn) {
-  min-height: 44px;
-  font-size: 18px;
+/* ===== СИСТЕМА РАЗМЕРОВ КНОПОК - УПРОЩЕННАЯ ===== */
+.btn-size-compact {
+  padding: 12px 8px !important;
+  font-size: 18px !important;
+  min-height: 44px !important;
 }
 
-[data-button-size="standard"] .btn:not(.settings-buttons .btn) {
-  min-height: 56px;
-  font-size: 22px;
+.btn-size-standard {
+  padding: 20px 12px !important;
+  font-size: 24px !important;
+  min-height: 56px !important;
 }
 
-[data-button-size="large"] .btn:not(.settings-buttons .btn) {
-  min-height: 68px;
-  font-size: 26px;
+.btn-size-large {
+  padding: 24px 16px !important;
+  font-size: 28px !important;
+  min-height: 68px !important;
 }
 
 /* Специфичные размеры для круглых кнопок */
-[data-button-shape="circle"][data-button-size="compact"] .btn:not(.settings-buttons .btn) {
-  width: 44px;
-  height: 44px;
-  font-size: 16px;
+.btn-shape-circle.btn-size-compact {
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  font-size: 16px !important;
 }
 
-[data-button-shape="circle"][data-button-size="standard"] .btn:not(.settings-buttons .btn) {
-  width: 56px;
-  height: 56px;
-  font-size: 20px;
+.btn-shape-circle.btn-size-standard {
+  width: 56px !important;
+  height: 56px !important;
+  padding: 0 !important;
+  font-size: 20px !important;
 }
 
-[data-button-shape="circle"][data-button-size="large"] .btn:not(.settings-buttons .btn) {
-  width: 68px;
-  height: 68px;
-  font-size: 24px;
+.btn-shape-circle.btn-size-large {
+  width: 68px !important;
+  height: 68px !important;
+  padding: 0 !important;
+  font-size: 24px !important;
 }
 
 /* ===== БАЗОВЫЕ СТИЛИ КНОПОК ===== */
@@ -215,11 +219,9 @@ html, body {
   align-items: center;
   justify-content: center;
   margin: 2px;
-  opacity: var(--button-opacity, 85%);
-}
-
-.btn:not([data-button-shape="circle"]) {
-  padding: 0 16px;
+  border-radius: 12px;
+  min-height: 56px;
+  font-size: 24px;
 }
 
 /* Анимация при нажатии */
