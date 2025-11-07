@@ -21,61 +21,84 @@ const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 
-// ЗВУКОВАЯ СИСТЕМА ДЛЯ SAFARI PWA
+// ЗВУКОВАЯ СИСТЕМА ДЛЯ PWA
 let audioContext = null;
-let isAudioAllowed = false;
+let clickSound = null;
 
-// Функция для разблокировки аудио в Safari
-function unlockAudio() {
-    if (isAudioAllowed) return;
-    
+function initAudio() {
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Создаем и сразу воспроизводим тихий звук чтобы разблокировать аудио
-        const buffer = audioContext.createBuffer(1, 1, 22050);
+        // Создаем приятный щелчок (более мягкий)
+        const duration = 0.05;
+        const sampleRate = audioContext.sampleRate;
+        const frameCount = sampleRate * duration;
+        const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
+        const data = buffer.getChannelData(0);
+        
+        // Генерируем мягкий щелчок (синусоида с затуханием)
+        for (let i = 0; i < frameCount; i++) {
+            const t = i / sampleRate;
+            const frequency = 1200; // Более высокий и мягкий тон
+            data[i] = Math.sin(2 * Math.PI * frequency * t) * Math.exp(-t * 30);
+        }
+        
+        clickSound = buffer;
+        
+        // Воспроизводим тихий звук чтобы разблокировать аудио
         const source = audioContext.createBufferSource();
         source.buffer = buffer;
-        source.connect(audioContext.destination);
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.001; // Почти неслышно
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
         source.start();
         
-        isAudioAllowed = true;
-        console.log('Audio unlocked for Safari');
     } catch (e) {
-        console.log('Audio unlock failed');
+        console.log('Audio init failed in PWA');
     }
 }
 
 function playSound() {
-    if (!isAudioAllowed) return;
-    
     try {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        if (!audioContext) {
+            initAudio();
+            return;
+        }
         
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.1);
+        if (clickSound) {
+            const source = audioContext.createBufferSource();
+            source.buffer = clickSound;
+            
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.15, audioContext.currentTime); // Тихий
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+            
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            source.start();
+        }
     } catch (error) {
         // Игнорируем ошибки
     }
 }
 
-// ВИБРАЦИЯ ДЛЯ iOS
+// ВИБРАЦИЯ - пробуем разные подходы
 function playVibration() {
     try {
-        // На iOS вибрация в браузере работает только при определенных условиях
+        // Пробуем стандартную вибрацию
         if (navigator.vibrate) {
-            navigator.vibrate(10);
+            navigator.vibrate(5); // Очень короткая
         }
     } catch (error) {
-        // Игнорируем ошибки вибрации
+        // Пробуем через тач-события для iOS
+        try {
+            const touchEvent = new TouchEvent('touchend');
+            window.dispatchEvent(touchEvent);
+        } catch (e) {
+            // Игнорируем
+        }
     }
 }
 
@@ -84,10 +107,23 @@ function handleButtonClick() {
     playVibration();
 }
 
-// РАЗБЛОКИРОВКА АУДИО ПРИ ПЕРВОМ КАСАНИИ
-document.addEventListener('touchstart', unlockAudio);
-document.addEventListener('click', unlockAudio);
-
+// Инициализация при загрузке PWA
+document.addEventListener('DOMContentLoaded', function() {
+    // Ждем немного и инициализируем аудио
+    setTimeout(() => {
+        // Сразу пробуем инициализировать для PWA
+        initAudio();
+        
+        // Добавляем обработчики для разблокировки
+        document.body.addEventListener('touchstart', function() {
+            if (!audioContext) initAudio();
+        });
+        
+        document.body.addEventListener('click', function() {
+            if (!audioContext) initAudio();
+        });
+    }, 500);
+});
 let expr = '';
 let readyForNewInput = false;
 let replaceLastNumber = false;
