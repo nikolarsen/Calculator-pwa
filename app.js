@@ -21,40 +21,79 @@ const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 
-// ЗВУКОВАЯ СИСТЕМА - ПРОСТАЯ И РАБОЧАЯ (заменить ТОЛЬКО этот блок)
-let audio = null;
+// ЗВУКОВАЯ СИСТЕМА - Web Audio API (работает на iOS)
+let audioContext = null;
+let clickBuffer = null;
+
+function initAudio() {
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Создаем простой щелчок
+        const duration = 0.1;
+        const sampleRate = audioContext.sampleRate;
+        const frameCount = sampleRate * duration;
+        const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
+        const data = buffer.getChannelData(0);
+        
+        for (let i = 0; i < frameCount; i++) {
+            data[i] = Math.random() * 2 - 1; // Белый шум
+        }
+        
+        clickBuffer = buffer;
+    } catch (e) {
+        console.log('Audio not supported');
+    }
+}
 
 function playSound() {
     try {
-        if (!audio) {
-            audio = new Audio();
-            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
-            audio.volume = 0.3; // Тихий звук
+        if (!audioContext) {
+            initAudio();
         }
         
-        audio.currentTime = 0;
-        audio.play();
+        if (audioContext && clickBuffer) {
+            const source = audioContext.createBufferSource();
+            source.buffer = clickBuffer;
+            
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Тихий звук
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            source.start();
+        }
     } catch (error) {
         // Игнорируем ошибки
     }
 }
 
-// ВИБРАЦИЯ - ПРОСТАЯ
+// ВИБРАЦИЯ - с проверкой поддержки
 function playVibration() {
-    if ('vibrate' in navigator) {
-        try {
-            navigator.vibrate(15); // Короткая вибрация
-        } catch (error) {
-            // Игнорируем ошибки вибрации
+    try {
+        if (navigator.vibrate && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            // Для iOS вибрация может не работать в браузере, но пробуем
+            navigator.vibrate(10);
         }
+    } catch (error) {
+        // Игнорируем ошибки вибрации
     }
 }
 
-// ОБРАБОТКА КЛИКОВ
 function handleButtonClick() {
     playSound();
     playVibration();
 }
+
+// Инициализируем аудио при первом касании
+document.addEventListener('touchstart', function initOnTouch() {
+    if (!audioContext) {
+        initAudio();
+    }
+    document.removeEventListener('touchstart', initOnTouch);
+});
 
 let expr = '';
 let readyForNewInput = false;
@@ -866,4 +905,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadHistory();
     renderScreen();
     updateHistoryHint();
+    // Инициализация при загрузке
+setTimeout(initAudio, 1000);
 });
