@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calc-pwa-v8.1';
+const CACHE_NAME = 'calc-pwa-v8.2';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -53,74 +53,13 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ✅ Стратегия: Cache First с Network Fallback
-self.addEventListener('fetch', event => {
-  const request = event.request;
-  
-  // Игнорируем внешние запросы и не-GET запросы
-  if (!request.url.startsWith(self.location.origin) || request.method !== 'GET') {
-    return;
-  }
-
+// ✅ УПРОЩЕННАЯ логика fetch - ЗАКОММЕНТИРОВАТЬ СЛОЖНЫЙ КОД
+self.addEventListener('fetch', (event) => {
+  // Простая логика - всегда из сети, с fallback на кэш
   event.respondWith(
-    caches.match(request)
-      .then(cachedResponse => {
-        // Если есть в кэше - возвращаем и обновляем кэш в фоне
-        if (cachedResponse) {
-          // Фоном обновляем кэш
-          event.waitUntil(
-            fetch(request)
-              .then(networkResponse => {
-                if (networkResponse.status === 200) {
-                  caches.open(CACHE_NAME)
-                    .then(cache => cache.put(request, networkResponse));
-                }
-              })
-              .catch(() => {/* Игнорируем ошибки сети */})
-          );
-          return cachedResponse;
-        }
-
-        // Если нет в кэше - пробуем сеть
-        return fetch(request)
-          .then(networkResponse => {
-            // Кэшируем успешные ответы
-            if (networkResponse.status === 200) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME)
-                .then(cache => cache.put(request, responseToCache));
-            }
-            return networkResponse;
-          })
-          .catch(error => {
-            // Fallback для основных типов ресурсов
-            console.log('[ServiceWorker] Оффлайн для:', request.url);
-            
-            if (request.destination === 'document') {
-              return caches.match('./index.html');
-            }
-            
-            if (request.destination === 'style') {
-              return new Response(
-                `body { background: #0f0f0f; color: #e9e9e9; font-family: system-ui; }`,
-                { headers: { 'Content-Type': 'text/css' } }
-              );
-            }
-            
-            if (request.destination === 'script') {
-              return new Response(
-                `console.log("Калькулятор - оффлайн режим");`,
-                { headers: { 'Content-Type': 'application/javascript' } }
-              );
-            }
-            
-            // Базовый fallback
-            return new Response('Оффлайн', { 
-              status: 408, 
-              statusText: 'Offline'
-            });
-          });
-      })
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    })
   );
 });
 
@@ -128,9 +67,5 @@ self.addEventListener('fetch', event => {
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
-  }
-  
-  if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0]?.postMessage({ version: CACHE_NAME });
   }
 });
