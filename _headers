@@ -1,0 +1,5 @@
+/*
+  Service-Worker-Allowed: /
+  X-Frame-Options: ALLOWALL
+  Cross-Origin-Embedder-Policy: unsafe-none
+  Cross-Origin-Opener-Policy: unsafe-none
