@@ -399,6 +399,11 @@ html, body {
   transform: translateZ(0);
   will-change: transform;
   -webkit-backface-visibility: hidden;
+  
+  /* ФИКС ДЛЯ НИЖНЕЙ ПАНЕЛИ БРАУЗЕРА */
+  height: 100%;
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom, 20px);
 }
 
 /* Верхняя часть с историей */
@@ -545,47 +550,21 @@ html, body {
     padding: 15px;
   }
 }
-/* Фикс для нижней панели Яндекс браузера */
+/* ФИКС ДЛЯ БРАУЗЕРНОЙ ПАНЕЛИ НА МАЛЕНЬКИХ ЭКРАНАХ */
 @media (max-height: 700px) {
-  .calculator {
-    padding-bottom: 80px !important; /* Добавляем место для панели браузера */
+  .keys {
+    margin-top: auto;
+    padding-bottom: 10px;
   }
   
-  .keys {
-    margin-bottom: 20px;
-  }
-}
-
-/* Дополнительный фикс для очень маленьких экранов */
-@media (max-height: 600px) {
   .topbar {
-    flex: 0.5;
+    flex-shrink: 1;
+    min-height: 80px;
   }
   
   .screen {
-    font-size: 44px !important;
-    min-height: 50px;
-    margin-bottom: 8px;
+    flex-shrink: 0;
   }
-  
-  .history {
-    font-size: 18px;
-  }
-}
-/* Блокировка масштабирования жестами */
-.calculator {
-  touch-action: pan-y; /* Разрешаем только вертикальную прокрутку */
-  -webkit-user-drag: none;
-}
-
-/* Предотвращение масштабирования двойным тапом */
-.keys {
-  touch-action: manipulation;
-}
-
-/* Фикс для iOS чтобы не было zoom при фокусе */
-input, select, textarea {
-  font-size: 16px; /* Предотвращает zoom в iOS */
 }
 /* Фикс для :active на мобильных */
 @media (hover: none) and (pointer: coarse) {
@@ -593,4 +572,5 @@ input, select, textarea {
     transform: scale(0.96) translateZ(0);
     transition-duration: 0s;
   }
+
 }
