@@ -16,46 +16,32 @@ const resetSettings = document.getElementById('resetSettings');
 
 // Новые элементы настроек
 const buttonShape = document.getElementById('buttonShape');
-const buttonSize = document.getElementById('buttonSize');
 const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 
-// ЗВУКОВАЯ СИСТЕМА ДЛЯ PWA
+// ЗВУКОВАЯ СИСТЕМА - Web Audio API
 let audioContext = null;
-let clickSound = null;
+let clickBuffer = null;
 
 function initAudio() {
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Создаем приятный щелчок (более мягкий)
-        const duration = 0.05;
+        // Создаем простой щелчок
+        const duration = 0.1;
         const sampleRate = audioContext.sampleRate;
         const frameCount = sampleRate * duration;
         const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
         const data = buffer.getChannelData(0);
         
-        // Генерируем мягкий щелчок (синусоида с затуханием)
         for (let i = 0; i < frameCount; i++) {
-            const t = i / sampleRate;
-            const frequency = 1200; // Более высокий и мягкий тон
-            data[i] = Math.sin(2 * Math.PI * frequency * t) * Math.exp(-t * 30);
+            data[i] = Math.random() * 2 - 1; // Белый шум
         }
         
-        clickSound = buffer;
-        
-        // Воспроизводим тихий звук чтобы разблокировать аудио
-        const source = audioContext.createBufferSource();
-        source.buffer = buffer;
-        const gainNode = audioContext.createGain();
-        gainNode.gain.value = 0.001; // Почти неслышно
-        source.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        source.start();
-        
+        clickBuffer = buffer;
     } catch (e) {
-        console.log('Audio init failed in PWA');
+        console.log('Audio not supported');
     }
 }
 
@@ -63,16 +49,15 @@ function playSound() {
     try {
         if (!audioContext) {
             initAudio();
-            return;
         }
         
-        if (clickSound) {
+        if (audioContext && clickBuffer) {
             const source = audioContext.createBufferSource();
-            source.buffer = clickSound;
+            source.buffer = clickBuffer;
             
             const gainNode = audioContext.createGain();
-            gainNode.gain.setValueAtTime(0.15, audioContext.currentTime); // Тихий
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
             
             source.connect(gainNode);
             gainNode.connect(audioContext.destination);
@@ -84,21 +69,14 @@ function playSound() {
     }
 }
 
-// ВИБРАЦИЯ - пробуем разные подходы
+// ВИБРАЦИЯ
 function playVibration() {
     try {
-        // Пробуем стандартную вибрацию
         if (navigator.vibrate) {
-            navigator.vibrate(5); // Очень короткая
+            navigator.vibrate(10);
         }
     } catch (error) {
-        // Пробуем через тач-события для iOS
-        try {
-            const touchEvent = new TouchEvent('touchend');
-            window.dispatchEvent(touchEvent);
-        } catch (e) {
-            // Игнорируем
-        }
+        // Игнорируем ошибки вибрации
     }
 }
 
@@ -107,23 +85,6 @@ function handleButtonClick() {
     playVibration();
 }
 
-// Инициализация при загрузке PWA
-document.addEventListener('DOMContentLoaded', function() {
-    // Ждем немного и инициализируем аудио
-    setTimeout(() => {
-        // Сразу пробуем инициализировать для PWA
-        initAudio();
-        
-        // Добавляем обработчики для разблокировки
-        document.body.addEventListener('touchstart', function() {
-            if (!audioContext) initAudio();
-        });
-        
-        document.body.addEventListener('click', function() {
-            if (!audioContext) initAudio();
-        });
-    }, 500);
-});
 let expr = '';
 let readyForNewInput = false;
 let replaceLastNumber = false;
@@ -145,7 +106,6 @@ function loadSettings() {
     if (!settings.screenFontSize) settings.screenFontSize = 52;
     if (!settings.historyFontSize) settings.historyFontSize = 22;
     if (!settings.buttonShape) settings.buttonShape = 'rounded';
-    if (!settings.buttonSize) settings.buttonSize = 'standard';
     if (!settings.buttonOpacity) settings.buttonOpacity = 85;
     if (!settings.decimalPlaces) settings.decimalPlaces = '10';
     
@@ -154,7 +114,6 @@ function loadSettings() {
     screenFontSize.value = settings.screenFontSize;
     historyFontSize.value = settings.historyFontSize;
     buttonShape.value = settings.buttonShape;
-    buttonSize.value = settings.buttonSize;
     buttonOpacity.value = settings.buttonOpacity;
     decimalPlaces.value = settings.decimalPlaces;
     
@@ -167,7 +126,6 @@ function saveSettingsToStorage() {
         screenFontSize: parseInt(screenFontSize.value),
         historyFontSize: parseInt(historyFontSize.value),
         buttonShape: buttonShape.value,
-        buttonSize: buttonSize.value,
         buttonOpacity: parseInt(buttonOpacity.value),
         decimalPlaces: decimalPlaces.value
     };
@@ -186,7 +144,6 @@ function applySettings() {
     historySizeValue.textContent = `${historyFontSize.value}px`;
     
     applyButtonShape(buttonShape.value);
-    applyButtonSize(buttonSize.value);
     applyButtonOpacity(buttonOpacity.value);
 }
 
@@ -195,7 +152,6 @@ function resetSettingsToDefault() {
     screenFontSize.value = '52';
     historyFontSize.value = '22';
     buttonShape.value = 'rounded';
-    buttonSize.value = 'standard';
     buttonOpacity.value = '85';
     decimalPlaces.value = '10';
     
@@ -208,14 +164,6 @@ function applyButtonShape(shape) {
     buttons.forEach(btn => {
         btn.classList.remove('btn-shape-rounded', 'btn-shape-square', 'btn-shape-circle');
         btn.classList.add(`btn-shape-${shape}`);
-    });
-}
-
-function applyButtonSize(size) {
-    const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
-    buttons.forEach(btn => {
-        btn.classList.remove('btn-size-compact', 'btn-size-standard', 'btn-size-large');
-        btn.classList.add(`btn-size-${size}`);
     });
 }
 
@@ -545,11 +493,6 @@ function normalizeExpression(expr) {
 
 /* ===== БЕЗОПАСНОЕ ВЫЧИСЛЕНИЕ ===== */
 function safeEval(displayExpr) {
-    // ВРЕМЕННО ОТКЛЮЧАЕМ ВАЛИДАЦИЮ ДЛЯ ТЕСТИРОВАНИЯ
-    // if (!validateExpression(displayExpr)) {
-    //     return null;
-    // }
-    
     let jsExpr = sanitizeForCalc(displayExpr);
     if (!jsExpr) return null;
 
@@ -808,7 +751,7 @@ keys.addEventListener('click', (e) => {
     const val = btn.dataset.value;
     const action = btn.dataset.action;
 
-    handleButtonClick(); // Используем новую функцию с звуком и вибрацией
+    handleButtonClick();
 
     if (action) {
         switch (action) {
@@ -928,14 +871,6 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-/* ===== ИНИЦИАЛИЗАЦИЯ ===== */
-document.addEventListener('DOMContentLoaded', () => {
-    loadSettings();
-    loadHistory();
-    renderScreen();
-    updateHistoryHint();
-    // Инициализация при загрузке
-setTimeout(initAudio, 1000);
 // ==== БЛОКИРОВКА МАСШТАБИРОВАНИЯ В PWA ====
 function disableZoom() {
     document.addEventListener('touchstart', function(event) {
@@ -959,4 +894,12 @@ function disableZoom() {
 
 // Запускаем блокировку масштабирования
 disableZoom();
+
+/* ===== ИНИЦИАЛИЗАЦИЯ ===== */
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    loadHistory();
+    renderScreen();
+    updateHistoryHint();
+    setTimeout(initAudio, 1000);
 });
