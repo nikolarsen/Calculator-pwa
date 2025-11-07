@@ -4,8 +4,7 @@
   "description": "Современный калькулятор с историей и темами",
   "start_url": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay"],
-  "orientation": "portrait",
+ "orientation": "portrait",
   "background_color": "#0f0f0f",
   "theme_color": "#111111",
   "permissions": ["audio-capture"],  // ← ДОБАВИТЬ ЗАПЯТУЮ ЗДЕСЬ
