@@ -440,7 +440,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(5, 1fr); /* ИЗМЕНИТЬ: 1fr вместо 60px */
-  gap: 8px; /* Теперь gap работает и по вертикали и по горизонтали */
+  gap: 6px; /* Теперь gap работает и по вертикали и по горизонтали */
   flex: 0 0 auto;
   margin: 0;
   width: 100%;
@@ -515,7 +515,7 @@ html, body {
 @media (max-height: 600px) {
   .keys {
     grid-template-rows: repeat(5, 1fr); /* ИЗМЕНИТЬ */
-    gap: 6px;
+    gap: 4px;
     min-height: 250px; /* Обновить минимальную высоту */
   }
 }
