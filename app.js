@@ -21,27 +21,52 @@ const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
-// Звуковая система - УЛЬТРА-ПРОСТАЯ
+// Звуковая система - ДЛЯ PWA
 let soundEnabled = false;
+let audio = null;
+let audioActivated = false;
+
+function activateAudioForPWA() {
+    if (audioActivated) return;
+    
+    try {
+        // Создаем и сразу воспроизводим тихий звук при первом клике
+        audio = new Audio();
+        audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+        audio.volume = 0.001; // Почти неслышно
+        audio.play().then(() => {
+            audioActivated = true;
+            console.log('✅ Audio activated for PWA');
+        }).catch(() => {
+            // Игнорируем ошибку первого воспроизведения
+        });
+    } catch (error) {
+        console.log('Audio activation error');
+    }
+}
 
 function playSound() {
     if (!soundEnabled) return;
     
+    // Активируем аудио при первом клике в PWA
+    if (!audioActivated) {
+        activateAudioForPWA();
+        return; // Пропускаем первый звук
+    }
+    
     try {
-        // Самый простой способ - использовать вибрацию как звуковой фидбэк
-        if (navigator.vibrate) {
-            navigator.vibrate(5);
+        if (!audio) {
+            audio = new Audio();
+            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+            audio.volume = 0.3;
         }
         
-        // Дополнительно пытаемся воспроизвести звук
-        const audio = new Audio();
-        audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
-        audio.volume = 0.1;
+        audio.currentTime = 0;
         audio.play().catch(() => {
-            // Игнорируем ошибки
+            // Игнорируем ошибки воспроизведения
         });
     } catch (error) {
-        console.log('Sound error');
+        console.log('Sound play error');
     }
 }
 
