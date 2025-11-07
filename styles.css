@@ -464,26 +464,21 @@ html, body {
   font-size: 18px;
 }
 /* Клавиши */
+/* Клавиши */
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, minmax(50px, 1fr));
   gap: 8px;
-  flex: 0 0 auto;
-  margin-top: auto;
+  flex: 1;
   min-height: 0;
+  margin-top: auto;
 }
 
-/* Для PWA режима - нормальные размеры кнопок */
-@media (display-mode: standalone) {
+/* Фикс для очень высоких экранов в PWA */
+@media (min-height: 800px) and (display-mode: standalone) {
   .keys {
     grid-template-rows: repeat(5, minmax(60px, 1fr));
-  }
-}
-
-/* Для браузерного режима - компактные кнопки */
-@media (display-mode: browser) {
-  .keys {
-    grid-template-rows: repeat(5, minmax(50px, 1fr));
   }
 }
 
