@@ -21,6 +21,7 @@ const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
+
 // Звуковая система - ДЛЯ PWA
 let soundEnabled = false;
 let audio = null;
@@ -139,11 +140,6 @@ function applySettings() {
     applyButtonOpacity(buttonOpacity.value);
     
     soundEnabled = keyboardSounds.value === 'on';
-    
-    // ДОБАВЬ ЭТУ СТРОКУ:
-    if (soundEnabled && audioElements.length === 0) {
-        initAudio();
-    }
 }
 
 function resetSettingsToDefault() {
@@ -897,7 +893,7 @@ document.addEventListener('keydown', (e) => {
 
 /* ===== ИНИЦИАЛИЗАЦИЯ ===== */
 document.addEventListener('DOMContentLoaded', () => {
-     loadSettings();
+    loadSettings();
     loadHistory();
     renderScreen();
     updateHistoryHint();
