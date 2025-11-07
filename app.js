@@ -162,7 +162,7 @@ function resetSettingsToDefault() {
 function applyButtonShape(shape) {
     const buttons = document.querySelectorAll('.btn:not(.settings-buttons .btn)');
     buttons.forEach(btn => {
-        btn.classList.remove('btn-shape-rounded', 'btn-shape-square', 'btn-shape-circle');
+        btn.classList.remove('btn-shape-rounded', 'btn-shape-square');
         btn.classList.add(`btn-shape-${shape}`);
     });
 }
