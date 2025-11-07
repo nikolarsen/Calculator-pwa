@@ -28,15 +28,19 @@ function initAudio() {
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Создаем простой щелчок
-        const duration = 0.1;
+        // Создаем приятный щелчок (заменить весь этот блок)
+        const duration = 0.08; // Короче
         const sampleRate = audioContext.sampleRate;
         const frameCount = sampleRate * duration;
         const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
         const data = buffer.getChannelData(0);
         
+        // Мягкий синусоидальный звук вместо белого шума
         for (let i = 0; i < frameCount; i++) {
-            data[i] = Math.random() * 2 - 1; // Белый шум
+            const t = i / sampleRate;
+            const frequency = 600; // Более низкий и приятный тон
+            const envelope = Math.exp(-t * 40); // Быстрое затухание
+            data[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.3; // Тише
         }
         
         clickBuffer = buffer;
@@ -56,8 +60,8 @@ function playSound() {
             source.buffer = clickBuffer;
             
             const gainNode = audioContext.createGain();
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.08, audioContext.currentTime); // ЕЩЕ ТИШЕ
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08);
             
             source.connect(gainNode);
             gainNode.connect(audioContext.destination);
