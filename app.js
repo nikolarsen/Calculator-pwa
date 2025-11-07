@@ -21,54 +21,30 @@ const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
-
-// Звуковая система - HTML5 AUDIO ДЛЯ PWA
+// Звуковая система - УЛЬТРА-ПРОСТАЯ
 let soundEnabled = false;
-let audioElements = [];
-let currentAudioIndex = 0;
-
-function initAudio() {
-    if (audioElements.length > 0) return;
-    
-    try {
-        // Создаем несколько аудио элементов для быстрого повторного воспроизведения
-        for (let i = 0; i < 3; i++) {
-            const audio = new Audio();
-            // Создаем короткий звук "бип" через base64
-            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
-            audio.volume = 0.3;
-            audioElements.push(audio);
-        }
-        console.log('✅ Audio elements created for PWA');
-    } catch (error) {
-        console.log('Audio init error:', error);
-    }
-}
 
 function playSound() {
     if (!soundEnabled) return;
     
-    // Инициализируем при первом использовании
-    if (audioElements.length === 0) {
-        initAudio();
-    }
-    
-    if (audioElements.length === 0) return;
-    
     try {
-        // Используем циклический буфер аудио элементов
-        const audio = audioElements[currentAudioIndex];
-        audio.currentTime = 0;
-        audio.play().catch(e => {
-            // Игнорируем ошибки автовоспроизведения
-        });
+        // Самый простой способ - использовать вибрацию как звуковой фидбэк
+        if (navigator.vibrate) {
+            navigator.vibrate(5);
+        }
         
-        // Переходим к следующему аудио элементу
-        currentAudioIndex = (currentAudioIndex + 1) % audioElements.length;
+        // Дополнительно пытаемся воспроизвести звук
+        const audio = new Audio();
+        audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+        audio.volume = 0.1;
+        audio.play().catch(() => {
+            // Игнорируем ошибки
+        });
     } catch (error) {
-        console.log('Sound play error');
+        console.log('Sound error');
     }
 }
+
 let expr = '';
 let readyForNewInput = false;
 let replaceLastNumber = false;
