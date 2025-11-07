@@ -20,27 +20,40 @@ const buttonSize = document.getElementById('buttonSize');
 const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
-const keyboardSounds = document.getElementById('keyboardSounds');
 
-// Звуковая система - ДЛЯ IPHONE
-let soundEnabled = false;
+// ЗВУКОВАЯ СИСТЕМА - ВСЕГДА ВКЛЮЧЕНА
 let audio = null;
 
 function playSound() {
-    if (!soundEnabled) return;
-    
     try {
         if (!audio) {
             audio = new Audio();
             audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
-            audio.volume = 0.5;
+            audio.volume = 0.3; // Тихий звук
         }
         
         audio.currentTime = 0;
-        audio.play();
+        audio.play().catch(() => { /* Игнорируем ошибки автоплей */ });
     } catch (error) {
         // Игнорируем ошибки
     }
+}
+
+// ВИБРАЦИЯ - ТИХАЯ
+function playVibration() {
+    if ('vibrate' in navigator) {
+        try {
+            navigator.vibrate(10); // Короткая тихая вибрация 10ms
+        } catch (error) {
+            // Игнорируем ошибки вибрации
+        }
+    }
+}
+
+// ОБРАБОТКА КЛИКОВ
+function handleButtonClick() {
+    playSound();
+    playVibration();
 }
 
 let expr = '';
@@ -67,7 +80,6 @@ function loadSettings() {
     if (!settings.buttonSize) settings.buttonSize = 'standard';
     if (!settings.buttonOpacity) settings.buttonOpacity = 85;
     if (!settings.decimalPlaces) settings.decimalPlaces = '10';
-    if (!settings.keyboardSounds) settings.keyboardSounds = 'off';
     
     // Применяем настройки
     themeSelect.value = settings.theme;
@@ -77,7 +89,6 @@ function loadSettings() {
     buttonSize.value = settings.buttonSize;
     buttonOpacity.value = settings.buttonOpacity;
     decimalPlaces.value = settings.decimalPlaces;
-    keyboardSounds.value = settings.keyboardSounds;
     
     applySettings();
 }
@@ -90,8 +101,7 @@ function saveSettingsToStorage() {
         buttonShape: buttonShape.value,
         buttonSize: buttonSize.value,
         buttonOpacity: parseInt(buttonOpacity.value),
-        decimalPlaces: decimalPlaces.value,
-        keyboardSounds: keyboardSounds.value
+        decimalPlaces: decimalPlaces.value
     };
     
     localStorage.setItem('calcSettings', JSON.stringify(settings));
@@ -110,8 +120,6 @@ function applySettings() {
     applyButtonShape(buttonShape.value);
     applyButtonSize(buttonSize.value);
     applyButtonOpacity(buttonOpacity.value);
-    
-    soundEnabled = keyboardSounds.value === 'on';
 }
 
 function resetSettingsToDefault() {
@@ -122,7 +130,6 @@ function resetSettingsToDefault() {
     buttonSize.value = 'standard';
     buttonOpacity.value = '85';
     decimalPlaces.value = '10';
-    keyboardSounds.value = 'off';
     
     applySettings();
     localStorage.removeItem('calcSettings');
@@ -183,12 +190,12 @@ buttonOpacity.addEventListener('input', function() {
 /* ===== УПРАВЛЕНИЕ МОДАЛЬНЫМ ОКНОМ ===== */
 settingsBtn.addEventListener('click', () => {
     settingsModal.classList.add('active');
-    playSound();
+    handleButtonClick();
 });
 
 closeSettings.addEventListener('click', () => {
     settingsModal.classList.remove('active');
-    playSound();
+    handleButtonClick();
 });
 
 settingsModal.addEventListener('click', (e) => {
@@ -200,12 +207,12 @@ settingsModal.addEventListener('click', (e) => {
 saveSettings.addEventListener('click', () => {
     saveSettingsToStorage();
     settingsModal.classList.remove('active');
-    playSound();
+    handleButtonClick();
 });
 
 resetSettings.addEventListener('click', () => {
     resetSettingsToDefault();
-    playSound();
+    handleButtonClick();
 });
 
 /* ===== СОХРАНЕНИЕ И ЗАГРУЗКА ИСТОРИИ ===== */
@@ -733,7 +740,7 @@ keys.addEventListener('click', (e) => {
     const val = btn.dataset.value;
     const action = btn.dataset.action;
 
-    playSound();
+    handleButtonClick(); // Используем новую функцию с звуком и вибрацией
 
     if (action) {
         switch (action) {
@@ -800,7 +807,7 @@ historyEl.addEventListener('click', (e) => {
         readyForNewInput = false;
         renderScreen();
         
-        playSound();
+        handleButtonClick();
     } catch (error) {
         // Ничего не делаем при ошибке выбора из истории
     }
