@@ -406,16 +406,18 @@ html, body {
 
 /* Верхняя часть с историей */
 .topbar {
-  flex: 0 0 auto;
-  min-height: 100px;
-  max-height: 150px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   overflow-y: auto;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   width: 100%;
 }
 
-/* История */
+/* История - занимает всё пространство сверху */
 .history {
+  flex: 1;
   color: var(--muted);
   font-size: 18px;
   line-height: 1.3;
@@ -443,7 +445,7 @@ html, body {
   background: var(--accent);
 }
 
-/* Экран */
+/* Экран вычислений - сразу над кнопками */
 .screen {
   font-size: 48px;
   padding: 10px;
@@ -468,14 +470,14 @@ html, body {
   font-size: 18px;
 }
 
-/* Клавиши - КОМПАКТНЫЕ И ПРЕДСКАЗУЕМЫЕ */
+/* Кнопки - в самом низу */
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(5, 60px);
   gap: 8px;
   flex: 0 0 auto;
-  margin: auto 0 0 0;
+  margin: 0;
   width: 100%;
 }
 
@@ -544,20 +546,6 @@ html, body {
 
 /* Для маленькой высоты экрана */
 @media (max-height: 600px) {
-  .topbar {
-    min-height: 80px;
-    max-height: 120px;
-  }
-  
-  .screen {
-    font-size: 36px;
-    min-height: 45px;
-  }
-  
-  .history {
-    font-size: 16px;
-  }
-  
   .keys {
     grid-template-rows: repeat(5, 50px);
     gap: 6px;
@@ -566,51 +554,16 @@ html, body {
 
 /* Для очень маленькой высоты */
 @media (max-height: 500px) {
-  .topbar {
-    min-height: 60px;
-    max-height: 80px;
-  }
-  
-  .screen {
-    font-size: 32px;
-    min-height: 40px;
-       margin margin-bottom: 5px-bottom: 5px;
-  }
-  
-  .history {
-   ;
-  }
-  
-  .history {
-    font-size: 14px font-size: 14px;
-  }
-  
   .keys {
-   ;
-  }
-  
-  .keys {
-    grid-template-rows: repeat( grid-template-rows: repeat(5, 45px);
-    gap:5, 45px);
+    grid-template-rows: repeat(5, 45px);
     gap: 4px;
- 4px;
   }
 }
 
-/*  }
-}
-
-/* Фикс Фикс для :active на моби для :active на мобильных */
-льных */
-@media (hover:@media (hover: none) and none) and (pointer: coarse (pointer: coarse) {
- ) {
-  .btn .btn:active {
-    transform: scale(0.:active {
-    transform: scale(0.96)96) translateZ(0 translateZ(0);
-    transition);
-    transition-duration: -duration: 0s;
-0s;
-  }
-}
+/* Фикс для :active на мобильных */
+@media (hover: none) and (pointer: coarse) {
+  .btn:active {
+    transform: scale(0.96) translateZ(0);
+    transition-duration: 0s;
   }
 }
