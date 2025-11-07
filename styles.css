@@ -463,16 +463,28 @@ html, body {
 .screen.extremely-long-number {
   font-size: 18px;
 }
-
 /* Клавиши */
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, 1fr);
   gap: 8px;
-  flex: 1;
-  min-height: 300px;
+  flex: 0 0 auto;
   margin-top: auto;
+  min-height: 0;
+}
+
+/* Для PWA режима - нормальные размеры кнопок */
+@media (display-mode: standalone) {
+  .keys {
+    grid-template-rows: repeat(5, minmax(60px, 1fr));
+  }
+}
+
+/* Для браузерного режима - компактные кнопки */
+@media (display-mode: browser) {
+  .keys {
+    grid-template-rows: repeat(5, minmax(50px, 1fr));
+  }
 }
 
 /* ===== ПОДСКАЗКА ИСТОРИИ ===== */
