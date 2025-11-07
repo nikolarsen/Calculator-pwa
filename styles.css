@@ -401,7 +401,7 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 /* Верхняя часть с историей */
@@ -412,7 +412,6 @@ html, body {
   overflow-y: auto;
   margin-bottom: 10px;
   width: 100%;
-  max-width: 100%;
 }
 
 /* История */
@@ -454,7 +453,6 @@ html, body {
   flex: 0 0 auto;
   margin-bottom: 10px;
   width: 100%;
-  max-width: 100%;
 }
 
 /* Авто-масштабирование шрифта для длинных чисел */
@@ -470,17 +468,15 @@ html, body {
   font-size: 18px;
 }
 
-/* Клавиши */
+/* Клавиши - КОМПАКТНЫЕ И ПРЕДСКАЗУЕМЫЕ */
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, minmax(50px, 1fr));
+  grid-template-rows: repeat(5, 60px);
   gap: 8px;
-  flex: 1;
-  min-height: 0;
-  margin: 10px 0;
+  flex: 0 0 auto;
+  margin: auto 0 0 0;
   width: 100%;
-  max-width: 100%;
 }
 
 /* ===== ПОДСКАЗКА ИСТОРИИ ===== */
@@ -563,8 +559,8 @@ html, body {
   }
   
   .keys {
+    grid-template-rows: repeat(5, 50px);
     gap: 6px;
-    min-height: 250px;
   }
 }
 
@@ -578,37 +574,43 @@ html, body {
   .screen {
     font-size: 32px;
     min-height: 40px;
-    margin-bottom: 5px;
+       margin margin-bottom: 5px-bottom: 5px;
   }
   
   .history {
-    font-size: 14px;
+   ;
+  }
+  
+  .history {
+    font-size: 14px font-size: 14px;
   }
   
   .keys {
+   ;
+  }
+  
+  .keys {
+    grid-template-rows: repeat( grid-template-rows: repeat(5, 45px);
+    gap:5, 45px);
     gap: 4px;
-    min-height: 200px;
+ 4px;
   }
 }
 
-/* Фикс для :active на мобильных */
-@media (hover: none) and (pointer: coarse) {
-  .btn:active {
-    transform: scale(0.96) translateZ(0);
-    transition-duration: 0s;
+/*  }
+}
+
+/* Фикс Фикс для :active на моби для :active на мобильных */
+льных */
+@media (hover:@media (hover: none) and none) and (pointer: coarse (pointer: coarse) {
+ ) {
+  .btn .btn:active {
+    transform: scale(0.:active {
+    transform: scale(0.96)96) translateZ(0 translateZ(0);
+    transition);
+    transition-duration: -duration: 0s;
+0s;
   }
 }
-
-/* Гарантируем что кнопки займут всю ширину */
-.keys {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
-/* Фикс для центрирования контента */
-.topbar, .screen {
-  width: 100%;
-  max-width: 100%;
+  }
 }
