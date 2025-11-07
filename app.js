@@ -906,4 +906,98 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScreen();
     updateHistoryHint();
     setTimeout(initAudio, 1000);
+
+    // ==== PWA УСТАНОВКА ====
+let deferredPrompt;
+const installButton = document.createElement('button');
+
+function createInstallButton() {
+    installButton.innerHTML = '📱 Установить приложение';
+    installButton.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 12px 16px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    `;
+    
+    installButton.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                installButton.style.display = 'none';
+            }
+            deferredPrompt = null;
+        }
+    });
+    
+    installButton.addEventListener('mouseenter', () => {
+        installButton.style.transform = 'scale(1.05)';
+        installButton.style.background = '#e6891a';
+    });
+    
+    installButton.addEventListener('mouseleave', () => {
+        installButton.style.transform = 'scale(1)';
+        installButton.style.background = 'var(--accent)';
+    });
+    
+    document.body.appendChild(installButton);
+    installButton.style.display = 'none';
+}
+
+// Показываем кнопку установки когда доступно
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    if (!installButton.parentElement) {
+        createInstallButton();
+    }
+    
+    // Показываем кнопку через 3 секунды после загрузки
+    setTimeout(() => {
+        installButton.style.display = 'block';
+        
+        // Авто-скрытие через 10 секунд
+        setTimeout(() => {
+            if (installButton.style.display !== 'none') {
+                installButton.style.display = 'none';
+            }
+        }, 10000);
+    }, 3000);
+});
+
+// Скрываем кнопку после установки
+window.addEventListener('appinstalled', () => {
+    installButton.style.display = 'none';
+    deferredPrompt = null;
+});
+
+// Проверяем если уже установлено как PWA
+if (window.matchMedia('(display-mode: standalone)').matches || 
+    window.navigator.standalone === true) {
+    // Уже установлено - не показываем кнопку
+} else {
+    // Не установлено - создаем кнопку
+    createInstallButton();
+}
+
+// Также показываем кнопку при загрузке если PWA доступно
+if ('BeforeInstallPromptEvent' in window) {
+    setTimeout(() => {
+        if (installButton.parentElement && !deferredPrompt) {
+            installButton.style.display = 'block';
+        }
+    }, 3000);
+}
 });
