@@ -936,4 +936,27 @@ document.addEventListener('DOMContentLoaded', () => {
     updateHistoryHint();
     // Инициализация при загрузке
 setTimeout(initAudio, 1000);
+// ==== БЛОКИРОВКА МАСШТАБИРОВАНИЯ В PWA ====
+function disableZoom() {
+    document.addEventListener('touchstart', function(event) {
+        if (event.touches.length > 1) {
+            event.preventDefault();
+        }
+    });
+    
+    document.addEventListener('gesturestart', function(event) {
+        event.preventDefault();
+    });
+    
+    document.addEventListener('gesturechange', function(event) {
+        event.preventDefault();
+    });
+    
+    document.addEventListener('gestureend', function(event) {
+        event.preventDefault();
+    });
+}
+
+// Запускаем блокировку масштабирования
+disableZoom();
 });
