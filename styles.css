@@ -387,6 +387,7 @@ html, body {
 }
 
 /* ===== ОСНОВНОЙ ИНТЕРФЕЙС КАЛЬКУЛЯТОРА ===== */
+/* ===== ОСНОВНОЙ ИНТЕРФЕЙС КАЛЬКУЛЯТОРА ===== */
 .calculator {
   max-width: 420px;
   margin: 0 auto;
@@ -399,11 +400,7 @@ html, body {
   transform: translateZ(0);
   will-change: transform;
   -webkit-backface-visibility: hidden;
-  
-  /* ФИКС ДЛЯ НИЖНЕЙ ПАНЕЛИ БРАУЗЕРА */
-  height: 100%;
-  min-height: 100vh;
-  padding-bottom: env(safe-area-inset-bottom, 20px);
+  box-sizing: border-box;
 }
 
 /* Верхняя часть с историей */
@@ -548,22 +545,6 @@ html, body {
   .history-hint {
     font-size: 14px;
     padding: 15px;
-  }
-}
-/* ФИКС ДЛЯ БРАУЗЕРНОЙ ПАНЕЛИ НА МАЛЕНЬКИХ ЭКРАНАХ */
-@media (max-height: 700px) {
-  .keys {
-    margin-top: auto;
-    padding-bottom: 10px;
-  }
-  
-  .topbar {
-    flex-shrink: 1;
-    min-height: 80px;
-  }
-  
-  .screen {
-    flex-shrink: 0;
   }
 }
 /* Фикс для :active на мобильных */
