@@ -22,22 +22,37 @@ const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
 
-// Звуковая система - ПРОСТАЯ И РАБОЧАЯ
+// Звуковая система - ИСПРАВЛЕННАЯ
 let soundEnabled = false;
+let audioContext = null;
 
-function playSound() {
-    if (!soundEnabled) return;
+function initAudio() {
+    if (audioContext) return;
     
     try {
-        // Создаем простой звук через Web Audio API
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('Audio context initialized');
+    } catch (error) {
+        console.log('Audio not supported:', error);
+    }
+}
+
+function playSound() {
+    if (!soundEnabled || !audioContext) return;
+    
+    try {
+        // Восстанавливаем контекст если он в suspended состоянии
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        oscillator.frequency.value = 600;
+        oscillator.frequency.value = 800;
         oscillator.type = 'sine';
         
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
@@ -46,7 +61,7 @@ function playSound() {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
     } catch (error) {
-        console.log('Audio error:', error);
+        console.log('Audio play error:', error);
     }
 }
 
@@ -119,6 +134,11 @@ function applySettings() {
     applyButtonOpacity(buttonOpacity.value);
     
     soundEnabled = keyboardSounds.value === 'on';
+    
+    // Инициализируем аудио при включении звуков
+    if (soundEnabled) {
+        initAudio();
+    }
 }
 
 function resetSettingsToDefault() {
@@ -872,6 +892,7 @@ document.addEventListener('keydown', (e) => {
 
 /* ===== ИНИЦИАЛИЗАЦИЯ ===== */
 document.addEventListener('DOMContentLoaded', () => {
+    initAudio(); // Инициализация аудио при загрузке
     loadSettings();
     loadHistory();
     renderScreen();
