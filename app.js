@@ -433,12 +433,12 @@ function validateExpression(displayExpr) {
     // Разрешаем выражения с десятичными дробями
     if (displayExpr.includes('.')) return true;
     // Запрещаем только целые числа с ведущими нулями
-    return !/\D0\d/.test(displayExpr);
+    return !/\D0\d/.test(displayExpr),
 }
     // Разрешаем выражения с десятичными дробями
     if (displayExpr.includes('.')) return true;
     // Запрещаем только целые числа с ведущими нулями
-    return !/\D0\d/.test(displayExpr);
+    return !/\D0\d/.test(displayExpr),
 }
       
         // ЗАПРЕТ: деление сразу после деления
