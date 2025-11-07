@@ -386,7 +386,19 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* ===== ОСНОВНОЙ ИНТЕРФЕЙС КАЛЬКУЛЯТОРА ===== */
+/* Клавиши */
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, minmax(50px, 1fr));
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  margin-top: 0; /* УБРАЛИ auto */
+  align-self: flex-end; /* Прижимаем к низу */
+}
+
+/* Фикс расстояния */
 .calculator {
   max-width: 100%;
   margin: 0 auto;
@@ -401,8 +413,8 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
+  justify-content: space-between; /* Равномерное распределение */
 }
-
 /* История */
 .history {
   color: var(--muted);
@@ -450,16 +462,6 @@ html, body {
   margin-bottom: 10px;
 }
 
-/* Клавиши */
-.keys {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, minmax(50px, 1fr));
-  gap: 8px;
-  flex: 0 0 auto; /* ИЗМЕНИЛИ: вместо flex: 1 */
-  min-height: 0;
-  margin-top: 10px; /* ИЗМЕНИЛИ: вместо margin-top: auto */
-}
 
 /* Авто-масштабирование шрифта для длинных чисел */
 .screen.long-number {
