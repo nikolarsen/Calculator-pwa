@@ -572,6 +572,21 @@ html, body {
     font-size: 18px;
   }
 }
+/* Блокировка масштабирования жестами */
+.calculator {
+  touch-action: pan-y; /* Разрешаем только вертикальную прокрутку */
+  -webkit-user-drag: none;
+}
+
+/* Предотвращение масштабирования двойным тапом */
+.keys {
+  touch-action: manipulation;
+}
+
+/* Фикс для iOS чтобы не было zoom при фокусе */
+input, select, textarea {
+  font-size: 16px; /* Предотвращает zoom в iOS */
+}
 /* Фикс для :active на мобильных */
 @media (hover: none) and (pointer: coarse) {
   .btn:active {
