@@ -66,47 +66,27 @@ historyHint.setAttribute('aria-label', 'Подсказка: Удерживайт
 function loadSettings() {
     const settings = JSON.parse(localStorage.getItem('calcSettings')) || {};
     
-    if (settings.theme) {
-        document.body.className = `theme-${settings.theme}`;
-        themeSelect.value = settings.theme;
-    }
+    // Устанавливаем значения по умолчанию если их нет в настройках
+    if (!settings.theme) settings.theme = 'dark';
+    if (!settings.screenFontSize) settings.screenFontSize = 52;
+    if (!settings.historyFontSize) settings.historyFontSize = 22;
+    if (!settings.buttonShape) settings.buttonShape = 'rounded';
+    if (!settings.buttonSize) settings.buttonSize = 'standard';
+    if (!settings.buttonOpacity) settings.buttonOpacity = 85;
+    if (!settings.decimalPlaces) settings.decimalPlaces = '10';
+    if (!settings.keyboardSounds) settings.keyboardSounds = 'off';
     
-    if (settings.screenFontSize) {
-        screen.style.fontSize = `${settings.screenFontSize}px`;
-        screenFontSize.value = settings.screenFontSize;
-        screenSizeValue.textContent = `${settings.screenFontSize}px`;
-    }
+    // Применяем настройки
+    themeSelect.value = settings.theme;
+    screenFontSize.value = settings.screenFontSize;
+    historyFontSize.value = settings.historyFontSize;
+    buttonShape.value = settings.buttonShape;
+    buttonSize.value = settings.buttonSize;
+    buttonOpacity.value = settings.buttonOpacity;
+    decimalPlaces.value = settings.decimalPlaces;
+    keyboardSounds.value = settings.keyboardSounds;
     
-    if (settings.historyFontSize) {
-        historyEl.style.fontSize = `${settings.historyFontSize}px`;
-        historyFontSize.value = settings.historyFontSize;
-        historySizeValue.textContent = `${settings.historyFontSize}px`;
-    }
-    
-    if (settings.buttonShape) {
-        buttonShape.value = settings.buttonShape;
-        applyButtonShape(settings.buttonShape);
-    }
-    
-    if (settings.buttonSize) {
-        buttonSize.value = settings.buttonSize;
-        applyButtonSize(settings.buttonSize);
-    }
-    
-    if (settings.buttonOpacity) {
-        buttonOpacity.value = settings.buttonOpacity;
-        opacityValue.textContent = `${settings.buttonOpacity}%`;
-        applyButtonOpacity(settings.buttonOpacity);
-    }
-    
-    if (settings.decimalPlaces) {
-        decimalPlaces.value = settings.decimalPlaces;
-    }
-    
-    if (settings.keyboardSounds) {
-        keyboardSounds.value = settings.keyboardSounds;
-        soundEnabled = settings.keyboardSounds === 'on';
-    }
+    applySettings();
 }
 
 function saveSettingsToStorage() {
@@ -360,13 +340,16 @@ function addHistoryItem(input, result) {
 
 /* ===== УЛУЧШЕННАЯ ВАЛИДАЦИЯ ОПЕРАТОРОВ ===== */
 function canAddOperator(char, currentExpr) {
-    if (!currentExpr) return false;
-    
-    const lastChar = currentExpr.slice(-1);
+    const lastChar = currentExpr ? currentExpr.slice(-1) : '';
     const operators = ['+', '−', '×', '÷'];
     
+    // Разрешаем начинать выражение с унарного минуса
+    if (!currentExpr && char === '−') {
+        return true;
+    }
+    
     // Нельзя добавлять оператор если:
-    // 1. Выражение пустое
+    // 1. Выражение пустое (кроме унарного минуса - уже обработано выше)
     if (!currentExpr) return false;
     
     // 2. Последний символ уже оператор (кроме унарного минуса)
@@ -392,7 +375,7 @@ function validateExpression(displayExpr) {
     if (!displayExpr) return false;
     
     const validations = [
-        // Нельзя начинать с × или ÷ или +
+        // Нельзя начинать с × или ÷ или + (но можно с унарного минуса)
         () => !/^[×÷+]/.test(displayExpr),
         
         // Строгая проверка на деление на ноль
@@ -418,7 +401,7 @@ function validateExpression(displayExpr) {
         // Проверка на пустые скобки
         () => !displayExpr.includes('()'),
         
-        // После ( нельзя ставить × или ÷ или +
+        // После ( нельзя ставить × или ÷ или + (но можно унарный минус)
         () => !displayExpr.includes('(×') && !displayExpr.includes('(÷') && !displayExpr.includes('(+'),
         
         // Проверка на незакрытые скобки
@@ -549,11 +532,12 @@ function insertChar(ch) {
     const ops = ['+', '−', '×', '÷'];
     
     // СТРОГИЙ ЗАПРЕТ: нельзя начинать выражение с операторов ×÷+
+    // НО разрешаем начинать с унарного минуса
     if (!expr && (ch === '×' || ch === '÷' || ch === '+')) {
         return;
     }
     
-    // После ( нельзя ставить × или ÷ или +
+    // После ( нельзя ставить × или ÷ или + (но можно унарный минус)
     if (lastChar === '(' && (ch === '×' || ch === '÷' || ch === '+')) {
         return;
     }
