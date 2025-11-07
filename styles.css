@@ -386,19 +386,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Клавиши */
-.keys {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, minmax(50px, 1fr));
-  gap: 8px;
-  flex: 1;
-  min-height: 0;
-  margin-top: 0; /* УБРАЛИ auto */
-  align-self: flex-end; /* Прижимаем к низу */
-}
-
-/* Фикс расстояния */
+/* ===== ОСНОВНОЙ ИНТЕРФЕЙС КАЛЬКУЛЯТОРА ===== */
 .calculator {
   max-width: 100%;
   margin: 0 auto;
@@ -413,8 +401,20 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  justify-content: space-between; /* Равномерное распределение */
+  justify-content: space-between;
 }
+
+/* Верхняя часть с историей */
+.topbar {
+  flex: 0 0 auto;
+  min-height: 100px;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 100%;
+}
+
 /* История */
 .history {
   color: var(--muted);
@@ -423,6 +423,7 @@ html, body {
   text-align: right;
   padding: 5px 10px;
   overflow-y: auto;
+  width: 100%;
 }
 
 /* Кастомный скроллбар для истории */
@@ -442,14 +443,6 @@ html, body {
 .history::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
-/* Верхняя часть с историей */
-.topbar {
-  flex: 0 0 auto;
-  min-height: 100px;
-  max-height: 150px;
-  overflow-y: auto;
-  margin-bottom: 10px;
-}
 
 /* Экран */
 .screen {
@@ -460,8 +453,9 @@ html, body {
   min-height: 60px;
   flex: 0 0 auto;
   margin-bottom: 10px;
+  width: 100%;
+  max-width: 100%;
 }
-
 
 /* Авто-масштабирование шрифта для длинных чисел */
 .screen.long-number {
@@ -476,12 +470,17 @@ html, body {
   font-size: 18px;
 }
 
-
-/* Фикс для очень высоких экранов в PWA */
-@media (min-height: 800px) and (display-mode: standalone) {
-  .keys {
-    grid-template-rows: repeat(5, minmax(60px, 1fr));
-  }
+/* Клавиши */
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, minmax(50px, 1fr));
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  margin: 10px 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* ===== ПОДСКАЗКА ИСТОРИИ ===== */
@@ -598,4 +597,18 @@ html, body {
     transform: scale(0.96) translateZ(0);
     transition-duration: 0s;
   }
+}
+
+/* Гарантируем что кнопки займут всю ширину */
+.keys {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Фикс для центрирования контента */
+.topbar, .screen {
+  width: 100%;
+  max-width: 100%;
 }
