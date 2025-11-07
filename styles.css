@@ -439,7 +439,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(5, 60px);
-  gap: 8px;
+  gap: 4px;
   flex: 0 0 auto;
   margin: 0;
   width: 100%;
@@ -512,7 +512,7 @@ html, body {
 @media (max-height: 600px) {
   .keys {
     grid-template-rows: repeat(5, 50px);
-    gap: 6px;
+    gap: 4px;
   }
 }
 
