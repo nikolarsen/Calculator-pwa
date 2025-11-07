@@ -69,3 +69,19 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
+// Service Worker для GitHub Pages
+const CACHE_NAME = 'calc-pwa-github';
+
+// GitHub Pages требует простой Service Worker
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  self.clients.claim();
+});
+
+// Простой fetch для обхода ограничений GitHub
+self.addEventListener('fetch', (event) => {
+  event.respondWith(fetch(event.request));
+});
