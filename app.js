@@ -22,23 +22,48 @@ const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
 
-// Звуковая система - ИСПРАВЛЕННАЯ
+// Звуковая система - ИСПРАВЛЕННАЯ ДЛЯ PWA
 let soundEnabled = false;
 let audioContext = null;
+let audioInitialized = false;
 
 function initAudio() {
-    if (audioContext) return;
+    if (audioInitialized) return;
     
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('Audio context initialized');
+        
+        // Сразу запускаем тихий звук для активации аудио в PWA
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 1; // Очень низкая частота
+        oscillator.type = 'sine';
+        gainNode.gain.value = 0.001; // Почти неслышно
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.01);
+        
+        audioInitialized = true;
+        console.log('✅ Audio activated for PWA');
     } catch (error) {
         console.log('Audio not supported:', error);
     }
 }
 
 function playSound() {
-    if (!soundEnabled || !audioContext) return;
+    if (!soundEnabled) return;
+    
+    // Если аудио еще не инициализировано, инициализируем при первом клике
+    if (!audioInitialized) {
+        initAudio();
+        return; // Пропускаем первый звук, чтобы активировать систему
+    }
+    
+    if (!audioContext) return;
     
     try {
         // Восстанавливаем контекст если он в suspended состоянии
@@ -64,7 +89,6 @@ function playSound() {
         console.log('Audio play error:', error);
     }
 }
-
 let expr = '';
 let readyForNewInput = false;
 let replaceLastNumber = false;
