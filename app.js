@@ -21,7 +21,7 @@ const buttonOpacity = document.getElementById('buttonOpacity');
 const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 
-// ЗВУКОВАЯ СИСТЕМА - ВСЕГДА ВКЛЮЧЕНА
+// ЗВУКОВАЯ СИСТЕМА - ПРОСТАЯ И РАБОЧАЯ (заменить ТОЛЬКО этот блок)
 let audio = null;
 
 function playSound() {
@@ -33,17 +33,17 @@ function playSound() {
         }
         
         audio.currentTime = 0;
-        audio.play().catch(() => { /* Игнорируем ошибки автоплей */ });
+        audio.play();
     } catch (error) {
         // Игнорируем ошибки
     }
 }
 
-// ВИБРАЦИЯ - ТИХАЯ
+// ВИБРАЦИЯ - ПРОСТАЯ
 function playVibration() {
     if ('vibrate' in navigator) {
         try {
-            navigator.vibrate(10); // Короткая тихая вибрация 10ms
+            navigator.vibrate(15); // Короткая вибрация
         } catch (error) {
             // Игнорируем ошибки вибрации
         }
