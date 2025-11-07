@@ -22,71 +22,51 @@ const opacityValue = document.getElementById('opacityValue');
 const decimalPlaces = document.getElementById('decimalPlaces');
 const keyboardSounds = document.getElementById('keyboardSounds');
 
-// Звуковая система - ИСПРАВЛЕННАЯ ДЛЯ PWA
+// Звуковая система - HTML5 AUDIO ДЛЯ PWA
 let soundEnabled = false;
-let audioContext = null;
-let audioInitialized = false;
+let audioElements = [];
+let currentAudioIndex = 0;
 
 function initAudio() {
-    if (audioInitialized) return;
+    if (audioElements.length > 0) return;
     
     try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Сразу запускаем тихий звук для активации аудио в PWA
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 1; // Очень низкая частота
-        oscillator.type = 'sine';
-        gainNode.gain.value = 0.001; // Почти неслышно
-        
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.01);
-        
-        audioInitialized = true;
-        console.log('✅ Audio activated for PWA');
+        // Создаем несколько аудио элементов для быстрого повторного воспроизведения
+        for (let i = 0; i < 3; i++) {
+            const audio = new Audio();
+            // Создаем короткий звук "бип" через base64
+            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+            audio.volume = 0.3;
+            audioElements.push(audio);
+        }
+        console.log('✅ Audio elements created for PWA');
     } catch (error) {
-        console.log('Audio not supported:', error);
+        console.log('Audio init error:', error);
     }
 }
 
 function playSound() {
     if (!soundEnabled) return;
     
-    // Если аудио еще не инициализировано, инициализируем при первом клике
-    if (!audioInitialized) {
+    // Инициализируем при первом использовании
+    if (audioElements.length === 0) {
         initAudio();
-        return; // Пропускаем первый звук, чтобы активировать систему
     }
     
-    if (!audioContext) return;
+    if (audioElements.length === 0) return;
     
     try {
-        // Восстанавливаем контекст если он в suspended состоянии
-        if (audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
+        // Используем циклический буфер аудио элементов
+        const audio = audioElements[currentAudioIndex];
+        audio.currentTime = 0;
+        audio.play().catch(e => {
+            // Игнорируем ошибки автовоспроизведения
+        });
         
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.1);
+        // Переходим к следующему аудио элементу
+        currentAudioIndex = (currentAudioIndex + 1) % audioElements.length;
     } catch (error) {
-        console.log('Audio play error:', error);
+        console.log('Sound play error');
     }
 }
 let expr = '';
@@ -159,8 +139,8 @@ function applySettings() {
     
     soundEnabled = keyboardSounds.value === 'on';
     
-    // Инициализируем аудио при включении звуков
-    if (soundEnabled) {
+    // ДОБАВЬ ЭТУ СТРОКУ:
+    if (soundEnabled && audioElements.length === 0) {
         initAudio();
     }
 }
@@ -916,8 +896,7 @@ document.addEventListener('keydown', (e) => {
 
 /* ===== ИНИЦИАЛИЗАЦИЯ ===== */
 document.addEventListener('DOMContentLoaded', () => {
-    initAudio(); // Инициализация аудио при загрузке
-    loadSettings();
+     loadSettings();
     loadHistory();
     renderScreen();
     updateHistoryHint();
