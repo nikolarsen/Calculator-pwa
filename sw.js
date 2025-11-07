@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calc-pwa-v7.5';
+const CACHE_NAME = 'calc-pwa-v7.6';
 const CACHE_FILES = [
   './',
   './index.html',
