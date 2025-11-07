@@ -435,14 +435,17 @@ html, body {
 }
 
 /* Кнопки - в самом низу */
+/* Кнопки - в самом низу */
 .keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, 60px);
-  gap: 4px;
+  grid-template-rows: repeat(5, 1fr); /* ИЗМЕНИТЬ: 1fr вместо 60px */
+  gap: 8px; /* Теперь gap работает и по вертикали и по горизонтали */
   flex: 0 0 auto;
   margin: 0;
   width: 100%;
+  height: auto; /* Добавить */
+  min-height: 300px; /* Сохранить минимальную высоту */
 }
 
 /* ===== ПОДСКАЗКА ИСТОРИИ ===== */
@@ -511,16 +514,17 @@ html, body {
 /* Для маленькой высоты экрана */
 @media (max-height: 600px) {
   .keys {
-    grid-template-rows: repeat(5, 50px);
-    gap: 4px;
+    grid-template-rows: repeat(5, 1fr); /* ИЗМЕНИТЬ */
+    gap: 6px;
+    min-height: 250px; /* Обновить минимальную высоту */
   }
 }
 
-/* Для очень маленькой высоты */
 @media (max-height: 500px) {
   .keys {
-    grid-template-rows: repeat(5, 45px);
+    grid-template-rows: repeat(5, 1fr); /* ИЗМЕНИТЬ */
     gap: 4px;
+    min-height: 200px; /* Обновить минимальную высоту */
   }
 }
 
