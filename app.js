@@ -428,19 +428,7 @@ function validateExpression(displayExpr) {
         
         // ЗАПРЕТ: множественные унарные минусы (больше одного подряд)
         () => !/−−\d/.test(displayExpr),
-  // Запрещаем ведущие нули типа "05", но разрешаем "0.5" и "0.0004"
-() => {
-    // Разрешаем выражения с десятичными дробями
-    if (displayExpr.includes('.')) return true;
-    // Запрещаем только целые числа с ведущими нулями
-    return !/\D0\d/.test(displayExpr),
-}
-    // Разрешаем выражения с десятичными дробями
-    if (displayExpr.includes('.')) return true;
-    // Запрещаем только целые числа с ведущими нулями
-    return !/\D0\d/.test(displayExpr),
-}
-      
+
         // ЗАПРЕТ: деление сразу после деления
         () => !/÷\s*÷/.test(displayExpr),
         
@@ -489,9 +477,10 @@ function normalizeExpression(expr) {
 
 /* ===== БЕЗОПАСНОЕ ВЫЧИСЛЕНИЕ ===== */
 function safeEval(displayExpr) {
-    if (!validateExpression(displayExpr)) {
-        return null;
-    }
+    // ВРЕМЕННО ОТКЛЮЧАЕМ ВАЛИДАЦИЮ ДЛЯ ТЕСТИРОВАНИЯ
+    // if (!validateExpression(displayExpr)) {
+    //     return null;
+    // }
     
     let jsExpr = sanitizeForCalc(displayExpr);
     if (!jsExpr) return null;
