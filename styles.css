@@ -545,7 +545,33 @@ html, body {
     padding: 15px;
   }
 }
+/* Фикс для нижней панели Яндекс браузера */
+@media (max-height: 700px) {
+  .calculator {
+    padding-bottom: 80px !important; /* Добавляем место для панели браузера */
+  }
+  
+  .keys {
+    margin-bottom: 20px;
+  }
+}
 
+/* Дополнительный фикс для очень маленьких экранов */
+@media (max-height: 600px) {
+  .topbar {
+    flex: 0.5;
+  }
+  
+  .screen {
+    font-size: 44px !important;
+    min-height: 50px;
+    margin-bottom: 8px;
+  }
+  
+  .history {
+    font-size: 18px;
+  }
+}
 /* Фикс для :active на мобильных */
 @media (hover: none) and (pointer: coarse) {
   .btn:active {
